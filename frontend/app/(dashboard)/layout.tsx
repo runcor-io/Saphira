@@ -6,7 +6,10 @@ import {
   Users, 
   MessageSquare, 
   LogOut,
-  Sparkles
+  Sparkles,
+  Coins,
+  UserCircle,
+  Settings
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
@@ -72,6 +75,27 @@ export default async function DashboardLayout({
               <MessageSquare className="w-4 h-4 text-wood" />
               <span className="font-medium">Feedback</span>
             </Link>
+            <Link 
+              href="/credits"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-charcoal hover:bg-linen transition-colors text-sm"
+            >
+              <Coins className="w-4 h-4 text-wood" />
+              <span className="font-medium">Credits</span>
+            </Link>
+            <Link 
+              href="/profile"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-charcoal hover:bg-linen transition-colors text-sm"
+            >
+              <UserCircle className="w-4 h-4 text-wood" />
+              <span className="font-medium">Profile</span>
+            </Link>
+            <Link 
+              href="/settings"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-charcoal hover:bg-linen transition-colors text-sm"
+            >
+              <Settings className="w-4 h-4 text-wood" />
+              <span className="font-medium">Settings</span>
+            </Link>
           </nav>
         </div>
 
@@ -123,6 +147,12 @@ export default async function DashboardLayout({
           </Link>
           <Link href="/feedback" className="px-4 py-2 bg-linen rounded-full text-sm font-medium text-charcoal whitespace-nowrap">
             Feedback
+          </Link>
+          <Link href="/credits" className="px-4 py-2 bg-linen rounded-full text-sm font-medium text-charcoal whitespace-nowrap">
+            Credits
+          </Link>
+          <Link href="/profile" className="px-4 py-2 bg-linen rounded-full text-sm font-medium text-charcoal whitespace-nowrap">
+            Profile
           </Link>
         </nav>
       </header>

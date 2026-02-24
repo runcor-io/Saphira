@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
@@ -16,6 +16,8 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const [rememberMe, setRememberMe] = useState(false);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -25,9 +27,20 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          // Extend session duration if remember me is checked
+          // Note: Actual implementation depends on Supabase config
+        }
       });
 
       if (error) throw error;
+
+      // Store remember me preference
+      if (rememberMe) {
+        localStorage.setItem('saphira_remember_email', email);
+      } else {
+        localStorage.removeItem('saphira_remember_email');
+      }
 
       router.push('/dashboard');
       router.refresh();
@@ -37,6 +50,15 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  // Load remembered email on mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('saphira_remember_email');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-linen flex items-center justify-center p-4">
@@ -98,7 +120,12 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded border-gray-300 text-wood focus:ring-wood" />
+                <input 
+                  type="checkbox" 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-gray-300 text-wood focus:ring-wood" 
+                />
                 <span className="text-gray-500 text-xs">Remember me</span>
               </label>
               <Link href="/forgot-password" className="text-wood text-xs hover:underline">
