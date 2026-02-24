@@ -1,0 +1,87 @@
+SAPPHIRA AI DATASET FILTER SUMMARY
+=====================================
+
+Input: /root/.openclaw/workspace/nigerian_communication_dataset/nigerian_communication_dataset.jsonl
+Total entries: 2117
+
+FILTER RESULTS
+--------------
+Kept: 1258 (59.4%)
+Removed: 859 (40.6%)
+
+KEPT BY USE CASE
+----------------
+  job_interview: 352
+  embassy_interview: 331
+  scholarship_interview: 212
+  business_pitch: 170
+  academic_presentation: 128
+  conference: 30
+  board_presentation: 18
+  exhibition: 9
+  media_interview: 8
+
+REMOVAL REASONS
+---------------
+  general_advice: 321
+  other: 259
+  administrative_info: 170
+  sample_template: 100
+  networking_advice: 6
+  forum_venting: 3
+
+EXAMPLES OF KEPT ENTRIES
+------------------------
+
+[1] ID: ng_001
+    Use Case: job_interview
+    Speaker: candidate
+    Text: It was a bright and sunny day in Lagos, and I had just graduated from the university with a degree in accounting. With my shiny new degree in hand, I was on the hunt for my first job as an accountant....
+
+[2] ID: ng_005
+    Use Case: job_interview
+    Speaker: audience
+    Text: Make DEM connect you nah Job go deh look for you no be you suppose deh look for job follow who know road you nah go deh swoe...
+
+[3] ID: ng_007
+    Use Case: job_interview
+    Speaker: candidate
+    Text: Even me as an undergraduate, na dispatch I dey use hold body anytime I enter lagos. Office job? Omo God no create me for that one walai....
+
+[4] ID: ng_008
+    Use Case: job_interview
+    Speaker: interviewer
+    Text: Tell Me About Yourself? This is one of the most common interview questions asked in Nigeria. The interviewer wants to hear your professional summary, not your life story. Focus on your education, rele...
+
+[5] ID: ng_009
+    Use Case: job_interview
+    Speaker: advisor
+    Text: When answering 'Tell me about yourself', structure your response in three parts: who you are (your role and experience), what you've achieved (specific accomplishments with numbers), and what you want...
+
+EXAMPLES OF REMOVED ENTRIES
+---------------------------
+
+[1] Reason: forum_venting
+    ID: ng_002
+    Text: For so many graduates, the inability to express themselves has continually kept them below par... There are so many graduates with good grades how you choose to stand out makes the difference. Your un...
+
+[2] Reason: other
+    ID: ng_003
+    Text: My advise to young graduates is to always look for job offers that offer great or better career prospects. Don't be too enticed by the starting salaries offered. Some jobs are career dead-end if you a...
+
+[3] Reason: general_advice
+    ID: ng_013
+    Text: It is cowardly to ask a personal question about someone's weaknesses without acknowledging your own. When answering about weaknesses, choose something that won't affect your core job duties. For examp...
+
+[4] Reason: administrative_info
+    ID: ng_bdd5be2d
+    Text: I got admitted into 3 schools, 1 waitlist, and 4 rejections. I just did my visa interview last month, it was granted. My Visa is arriving soon. The VO only asked me two questions: Why this university?...
+
+[5] Reason: networking_advice
+    ID: ng_2f59ed08
+    Text: How I Secured A Job Through A Nigerian Professional Networking App. For those that might find this useful, Corperate is a Nigerian networking App where different Nigerian companies post jobs that prof...
+
+OUTPUT FILES
+------------
+JSONL: /root/.openclaw/workspace/saphira_filtered_dataset.jsonl
+CSV: /root/.openclaw/workspace/saphira_filtered_dataset.csv

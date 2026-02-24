@@ -1,0 +1,410 @@
+{
+  "metadata": {
+    "dataset_name": "Saphira Nigerian Interview Dataset",
+    "version": "1.0",
+    "created_date": "2026-02-23",
+    "description": "Comprehensive Nigerian interview questions, tone markers, and cultural context for building an authentic Nigerian recruiter persona",
+    "sources": [
+      "Jobberman Nigeria",
+      "MyJobMag Nigeria",
+      "Hot Nigerian Jobs",
+      "Nairaland",
+      "Glassdoor Nigeria",
+      "LinkedIn Nigeria",
+      "Nigerian HR professionals"
+    ]
+  },
+  "categories": {
+    "personality_questions": {
+      "description": "Questions to understand the candidate's character, motivations, and fit",
+      "questions": [
+        {
+          "question": "Tell me about yourself",
+          "nigerian_variations": [
+            "Can I meet you?",
+            "Who are you?",
+            "Can we know you?",
+            "Why are you here?",
+            "Tell us about where you come from"
+          ],
+          "context": "Standard opening question in Nigerian interviews. Often used to assess communication skills and cultural fit.",
+          "expected_answer_structure": "Name, educational qualifications, relevant experience, connection to the role"
+        },
+        {
+          "question": "Why should we hire you?",
+          "nigerian_variations": [
+            "Why do you think you are the best for this job?",
+            "What can you do for us that other candidates can't?",
+            "Why are you the right fit?"
+          ],
+          "context": "Tests self-awareness and ability to articulate value proposition"
+        },
+        {
+          "question": "Why do you want to work here?",
+          "nigerian_variations": [
+            "Why do you want to work for us?",
+            "Why do you want to work for this organization?",
+            "What attracts you to this company?"
+          ],
+          "context": "Tests research done on company and genuine interest. Never accept 'I just need a job' as an answer.",
+          "expected_elements": ["Company knowledge", "Alignment with values", "Career goals"]
+        },
+        {
+          "question": "Where do you see yourself in 5 years?",
+          "nigerian_variations": [
+            "Where do you see yourself in the next 3 years?",
+            "What are your goals?",
+            "What is your career path?"
+          ],
+          "context": "Tests ambition and long-term thinking. Nigerian employers want to see loyalty and growth within the company."
+        },
+        {
+          "question": "What do you know about this organization?",
+          "nigerian_variations": [
+            "Tell us what you know about the bank/company",
+            "What do you know about us?",
+            "Why did you choose this company?"
+          ],
+          "context": "Tests preparation and research. Nigerian employers expect candidates to know company history, mission, values, and recent achievements."
+        },
+        {
+          "question": "What drives you?",
+          "nigerian_variations": [
+            "What motivates you to do your best on the job?",
+            "What makes you tick?",
+            "What pushes you to perform?"
+          ],
+          "context": "Nigerian phrasing preference over 'What motivates you?'",
+          "common_drivers": ["Challenge", "Achievement", "Recognition", "Making impact"]
+        },
+        {
+          "question": "What is your philosophy towards work?",
+          "nigerian_variations": [
+            "What is your work ethic?",
+            "How do you approach your work?"
+          ],
+          "context": "Nigerian employers value brief, positive answers that highlight benefit to the organization"
+        }
+      ]
+    },
+    "pressure_questions": {
+      "description": "Questions designed to test resilience and address potential red flags",
+      "questions": [
+        {
+          "question": "Why is your CGPA low?",
+          "nigerian_variations": [
+            "Your grades are not so strong. Why is that?",
+            "You graduated with a 2.2. Can you explain?",
+            "Tell me about your academic performance"
+          ],
+          "context": "Very common in Nigerian interviews. CGPA matters significantly in Nigeria's competitive job market.",
+          "expected_response": "Honest explanation with focus on improvement, skills gained, or extenuating circumstances"
+        },
+        {
+          "question": "Why NYSC gap?",
+          "nigerian_variations": [
+            "What have you been doing since NYSC?",
+            "Why haven't you gotten a job since graduation?",
+            "What have you been doing since you finished school?",
+            "Why the gap between school and now?"
+          ],
+          "context": "NYSC (National Youth Service Corps) is mandatory one-year service. Gaps after NYSC are scrutinized heavily.",
+          "expected_response": "Skills development, volunteering, freelancing, or job searching with specific learnings"
+        },
+        {
+          "question": "Why did you leave your last job?",
+          "nigerian_variations": [
+            "Why are you leaving your current job?",
+            "Why do you want to leave?",
+            "What happened at your previous workplace?"
+          ],
+          "context": "Critical question. Nigerian employers are wary of job-hoppers and negative talk about previous employers.",
+          "warnings": [
+            "Never speak negatively about previous employers",
+            "Never complain about supervisors or coworkers",
+            "Focus on positive reasons: growth, new opportunities"
+          ]
+        },
+        {
+          "question": "Why haven't you gotten a job since graduation?",
+          "nigerian_variations": [
+            "You've been job hunting for a while. Why no success?",
+            "What challenges have you faced in your job search?"
+          ],
+          "context": "Tests resilience and self-awareness. High unemployment in Nigeria makes this a sensitive but common question."
+        },
+        {
+          "question": "Why is your degree different from this role?",
+          "nigerian_variations": [
+            "How can you fit your course of study into what you've applied for?",
+            "Your background is in X, why are you applying for Y?"
+          ],
+          "context": "Common for graduates applying outside their field. Tests transferable skills and adaptability."
+        },
+        {
+          "question": "Tell me about a problem you had with a supervisor",
+          "nigerian_variations": [
+            "Have you ever had issues with your boss?",
+            "Tell me about a conflict at work"
+          ],
+          "context": "TRAP QUESTION. Nigerian employers test loyalty and discretion. Never speak ill of past supervisors.",
+          "recommended_approach": "State you've had positive relationships or describe a minor disagreement resolved professionally"
+        }
+      ]
+    },
+    "loyalty_questions": {
+      "description": "Questions to assess commitment and retention risk",
+      "questions": [
+        {
+          "question": "Are you planning to relocate?",
+          "nigerian_variations": [
+            "Do you plan to travel abroad?",
+            "Are you planning to japa?",
+            "Will you stay in Nigeria?",
+            "Are you willing to relocate if required?"
+          ],
+          "context": "'Japa' is Nigerian slang for emigrating. Brain drain is a major concern for Nigerian employers.",
+          "expected_response": "Reassurance of commitment to staying and growing with the company"
+        },
+        {
+          "question": "Will you stay long with us?",
+          "nigerian_variations": [
+            "How long do you plan to stay with us?",
+            "How long would you expect to work for us if hired?",
+            "Where do you see yourself in 3 years with us?"
+          ],
+          "context": "Tests retention intention. Nigerian employers invest heavily in training and want long-term commitment.",
+          "expected_response": "Express desire for long-term growth within the organization"
+        },
+        {
+          "question": "If you get a better offer, will you leave?",
+          "nigerian_variations": [
+            "What if another company offers you more money?",
+            "How loyal will you be to us?"
+          ],
+          "context": "Tests loyalty vs. opportunism. Nigerian employers value loyalty highly."
+        }
+      ]
+    },
+    "respect_authority_questions": {
+      "description": "Questions to assess deference to hierarchy and conflict resolution",
+      "questions": [
+        {
+          "question": "How do you handle authority?",
+          "nigerian_variations": [
+            "How do you relate with senior colleagues?",
+            "How do you handle instructions from above?",
+            "What is your attitude towards hierarchy?"
+          ],
+          "context": "Nigerian workplace culture is hierarchical. Respect for authority is crucial.",
+          "expected_response": "Show respect, follow instructions, escalate appropriately when needed"
+        },
+        {
+          "question": "How do you handle disagreement with your boss?",
+          "nigerian_variations": [
+            "What if you disagree with your supervisor?",
+            "How do you handle conflicts with management?",
+            "Tell me about a time you disagreed with your boss"
+          ],
+          "context": "Tests diplomacy and respect. Nigerian culture values indirect communication and saving face.",
+          "expected_response": "Express view respectfully, listen to boss's perspective, ultimately defer to authority"
+        },
+        {
+          "question": "How do you handle a troublesome customer?",
+          "nigerian_variations": [
+            "What do you do with difficult clients?",
+            "How do you handle complaints?"
+          ],
+          "context": "Customer service is paramount in Nigerian banking and service industries."
+        },
+        {
+          "question": "What kind of person would you refuse to work with?",
+          "nigerian_variations": [
+            "Who can't you work with?",
+            "What type of colleague do you dislike?"
+          ],
+          "context": "TRAP QUESTION. Nigerian employers want team players who can work with anyone.",
+          "warnings": ["Don't be trivial", "Don't complain", "Focus on values like dishonesty or violence"]
+        }
+      ]
+    },
+    "competency_questions": {
+      "description": "Questions to assess skills and abilities",
+      "questions": [
+        {
+          "question": "What experience do you have in this field?",
+          "nigerian_variations": [
+            "Tell me about your experience",
+            "What have you done in this area?",
+            "What is your background in this field?"
+          ],
+          "context": "Nigerian phrasing: 'Tell me about your experience' NOT 'Elaborate on your experience'"
+        },
+        {
+          "question": "What are your strengths and areas of improvement?",
+          "nigerian_variations": [
+            "What are your strong points?",
+            "What would your previous supervisor say your strongest point is?",
+            "What do you need to work on?"
+          ],
+          "context": "Nigerian preference for 'areas of improvement' instead of 'weaknesses'",
+          "common_strengths": [
+            "Ability to prioritize tasks",
+            "Problem-solving skills",
+            "Working under pressure",
+            "Professional expertise",
+            "Leadership abilities",
+            "Patience",
+            "Communication skills"
+          ]
+        },
+        {
+          "question": "How do you work under pressure?",
+          "nigerian_variations": [
+            "Tell me about your ability to work under pressure",
+            "How do you handle stress?",
+            "Can you work under tight deadlines?"
+          ],
+          "context": "Nigerian workplaces can be high-pressure. Employers want resilience."
+        },
+        {
+          "question": "Are you a team player?",
+          "nigerian_variations": [
+            "How do you work in a team?",
+            "Tell me about your teamwork experience"
+          ],
+          "context": "Communal values are strong in Nigeria. Teamwork is highly valued."
+        },
+        {
+          "question": "What is your expected salary?",
+          "nigerian_variations": [
+            "What are your salary expectations?",
+            "How much do you want to be paid?"
+          ],
+          "context": "Sensitive topic. Nigerian candidates often try to avoid naming a number first.",
+          "recommended_response": "Ask for the company's range first, then negotiate"
+        }
+      ]
+    },
+    "company_specific_questions": {
+      "description": "Questions specific to major Nigerian employers",
+      "access_bank": {
+        "questions": [
+          "Tell us about yourself",
+          "Why do you want to work for Access Bank?",
+          "What would you do differently to enhance the organization's performance?",
+          "Who's duty is it to render customer service?",
+          "What's Customer Service?",
+          "How can you fit your course of study into what you've applied to?"
+        ],
+        "recruitment_stages": [
+          "Written test",
+          "Open day at head office",
+          "Panel interview"
+        ]
+      },
+      "gtbank": {
+        "questions": [
+          "Why do you want to work with GTB?",
+          "Where do you see yourself in the next 3 years?",
+          "How do you handle a troublesome customer?",
+          "What are your strengths and weaknesses?",
+          "Why did you choose this career path?",
+          "How do you prioritize your tasks when you have multiple deadlines?",
+          "Describe a time when you faced a challenging situation at work"
+        ],
+        "core_values": [
+          "Simplicity",
+          "Professionalism",
+          "Service",
+          "Friendliness",
+          "Excellence",
+          "Trustworthiness",
+          "Social Responsibility",
+          "Innovation"
+        ],
+        "recruitment_stages": [
+          "Computer-based assessment (12 minutes)",
+          "Pre-interview documentation and essay",
+          "Panel interview",
+          "Final interview with executive management",
+          "Entry-level training scheme (4 months)"
+        ]
+      },
+      "flutterwave": {
+        "questions": [
+          "What is your salary expectation?",
+          "Are you a leader or a follower?",
+          "Why do you want to leave your current job?",
+          "What is your greatest accomplishment?",
+          "Why should we hire you?",
+          "Can you work shifts?",
+          "What makes you suitable for the job?"
+        ],
+        "context": "Tech-focused questions about scaling systems and building solutions"
+      },
+      "paystack": {
+        "questions": [
+          "How to scale systems",
+          "How to build RAG systems",
+          "Scenario-based technical questions"
+        ],
+        "context": "Highly technical, scenario-based interviews"
+      },
+      "mtn_nigeria": {
+        "questions": [
+          "Who are you?",
+          "What are your achievements?",
+          "General ambition questions",
+          "Scenario-based problem solving"
+        ]
+      }
+    }
+  },
+  "cultural_context": {
+    "hierarchy_and_respect": {
+      "description": "Nigerian workplaces are deeply hierarchical",
+      "key_points": [
+        "Always use honorifics: Chief, Dr., Engr., Barr.",
+        "Address senior staff formally until invited to do otherwise",
+        "Soft handshake with left hand supporting right elbow shows deference",
+        "Moderate eye contact: too little seems evasive, too much challenges authority"
+      ]
+    },
+    "ethnic_dynamics": {
+      "description": "Nigeria has over 250 ethnic groups affecting workplace culture",
+      "major_groups": {
+        "yoruba": {
+          "regions": ["Lagos", "Ibadan", "Western Nigeria"],
+          "values": ["Omoluabi (integrity and respect)", "Communal values", "Hierarchy"],
+          "greeting": "Ẹ káàbọ̀ (welcome)"
+        },
+        "igbo": {
+          "regions": ["Enugu", "Onitsha", "Eastern Nigeria"],
+          "values": ["Entrepreneurial hustle", "Self-reliance", "Apprenticeship model"],
+          "traits": "Quick thinking, ability to sell oneself"
+        },
+        "hausa_fulani": {
+          "regions": ["Kano", "Northern Nigeria"],
+          "values": ["Deference to authority", "Indirect communication", "Hospitality"],
+          "greeting": "Sannu",
+          "notes": "Refusing tea can be seen as rejecting hospitality"
+        }
+      }
+    },
+    "networking_importance": {
+      "description": "Relationships and referrals are crucial in Nigeria",
+      "statistics": "68% of hires in major Nigerian firms involved internal referrals (2022 LinkedIn survey)",
+      "key_networks": [
+        "Alumni networks (very strong loyalty)",
+        "Industry 'owambe' parties",
+        "Family and community connections"
+      ]
+    },
+    "formality_levels": {
+      "banking_oil": "Very formal, suits required, British colonial influence",
+      "tech_startups": "More relaxed but still professional",
+      "northern_states": "Conservative dress mandatory, modest attire"
+    }
+  }
+}

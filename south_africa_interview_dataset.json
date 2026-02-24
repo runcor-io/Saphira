@@ -1,0 +1,627 @@
+{
+  "country": "South Africa",
+  "cultural_context": {
+    "communication_style": "Direct, confident, professional but conversational",
+    "interview_structure": "Competency-focused, less hierarchical than other African markets, panel or one-on-one formats",
+    "key_values": ["Diversity consciousness", "Transformation", "BEE awareness", "Ubuntu philosophy", "Direct communication", "Assertiveness", "Competency demonstration"],
+    "language_markers": ["Ubuntu", "BEE/B-BBEE", "Transformation", "Howzit", "Sharp sharp", "Now now"]
+  },
+  "panel_introductions": [
+    {
+      "type": "direct_professional",
+      "text": "Good morning. I'm [Name], [Title]. Thanks for making the time to see us today. We'll get straight into it - we have about [time] allocated for this interview."
+    },
+    {
+      "type": "team_introduction",
+      "text": "Welcome. I'm [Name] and this is [Name] from [Department]. We're here to learn more about you and your experience. Feel free to be direct and honest with your answers."
+    },
+    {
+      "type": "competency_focused",
+      "text": "Thanks for coming in. I'm [Name], and I'll be leading today's discussion. We're particularly interested in understanding your competencies and how they align with this role. Let's start with you telling us a bit about yourself."
+    },
+    {
+      "type": "transformation_aware",
+      "text": "Good morning. I'm [Name], and with me is [Name]. As you know, we're committed to transformation and diversity in our organization. We'd like to understand how you see yourself contributing to our goals."
+    },
+    {
+      "type": "casual_professional",
+      "text": "Howzit! Thanks for coming through. I'm [Name], [Title]. Let's have a chat about your background and what you're looking for in your next role."
+    }
+  ],
+  "personality_questions": [
+    {
+      "question": "Tell us about yourself and what brings you here today.",
+      "category": "self_introduction",
+      "context": "Direct opening, expects concise confident response"
+    },
+    {
+      "question": "What makes you the best candidate for this position?",
+      "category": "differentiation",
+      "context": "Tests confidence and self-advocacy"
+    },
+    {
+      "question": "How would you describe your communication style?",
+      "category": "self_awareness",
+      "context": "Assesses fit with direct SA corporate culture"
+    },
+    {
+      "question": "What are you passionate about outside of work?",
+      "category": "personal_interests",
+      "context": "Builds rapport, assesses well-roundedness"
+    },
+    {
+      "question": "How do you handle working with people from different backgrounds?",
+      "category": "diversity",
+      "context": "Critical in SA context - diversity consciousness"
+    },
+    {
+      "question": "Describe a time when you had to stand up for what you believed was right.",
+      "category": "integrity",
+      "context": "Tests values and courage"
+    },
+    {
+      "question": "What does Ubuntu mean to you in a workplace context?",
+      "category": "cultural_philosophy",
+      "context": "Tests understanding of African philosophy"
+    },
+    {
+      "question": "How do you define professional success?",
+      "category": "values",
+      "context": "Assesses motivation and priorities"
+    },
+    {
+      "question": "Tell us about a time when you had to adapt your style to work effectively with someone different from you.",
+      "category": "adaptability",
+      "context": "Tests flexibility in diverse environment"
+    },
+    {
+      "question": "What is your greatest professional achievement?",
+      "category": "achievement",
+      "context": "Tests confidence in accomplishments"
+    },
+    {
+      "question": "How do you handle constructive criticism?",
+      "category": "feedback_reception",
+      "context": "Tests emotional maturity"
+    },
+    {
+      "question": "What motivates you to perform at your best?",
+      "category": "motivation",
+      "context": "Assesses intrinsic vs extrinsic drivers"
+    },
+    {
+      "question": "Describe your ideal work environment.",
+      "category": "culture_fit",
+      "context": "Tests alignment with company culture"
+    },
+    {
+      "question": "How do you maintain work-life balance?",
+      "category": "balance",
+      "context": "Assesses sustainability of work approach"
+    },
+    {
+      "question": "What is your approach to continuous learning and development?",
+      "category": "growth_mindset",
+      "context": "Tests commitment to self-improvement"
+    }
+  ],
+  "pressure_questions": [
+    {
+      "question": "Why should we choose you over other qualified candidates?",
+      "category": "competitive_positioning",
+      "context": "Tests ability to articulate unique value"
+    },
+    {
+      "question": "Tell us about a time you failed. What happened and what did you learn?",
+      "category": "failure_recovery",
+      "context": "Tests resilience and learning orientation"
+    },
+    {
+      "question": "How do you handle conflict in the workplace?",
+      "category": "conflict_management",
+      "context": "Tests direct but professional approach"
+    },
+    {
+      "question": "What would you do if you discovered a colleague was violating company policy?",
+      "category": "ethical_dilemma",
+      "context": "Tests integrity and judgment"
+    },
+    {
+      "question": "Describe a situation where you had to deliver results with limited resources.",
+      "category": "resourcefulness",
+      "context": "Tests problem-solving under constraints"
+    },
+    {
+      "question": "How do you handle stress when under pressure?",
+      "category": "stress_management",
+      "context": "Tests coping mechanisms"
+    },
+    {
+      "question": "Tell us about a time when you had to make an unpopular decision.",
+      "category": "decision_courage",
+      "context": "Tests leadership and conviction"
+    },
+    {
+      "question": "What would you do if your manager asked you to do something you disagreed with?",
+      "category": "hierarchy_challenge",
+      "context": "Tests assertiveness vs respect for authority"
+    },
+    {
+      "question": "How do you handle working with a difficult team member?",
+      "category": "interpersonal_skills",
+      "context": "Tests diplomacy and directness balance"
+    },
+    {
+      "question": "Describe a time when you missed a deadline. How did you handle it?",
+      "category": "accountability",
+      "context": "Tests ownership and recovery"
+    },
+    {
+      "question": "What is your biggest weakness and how are you addressing it?",
+      "category": "self_awareness",
+      "context": "Tests honesty and growth commitment"
+    },
+    {
+      "question": "How would you handle a situation where you were asked to compromise your values?",
+      "category": "values_integrity",
+      "context": "Tests ethical boundaries"
+    },
+    {
+      "question": "Tell us about a time when you had to challenge the status quo.",
+      "category": "innovation_courage",
+      "context": "Tests initiative and change leadership"
+    },
+    {
+      "question": "What would you do if you realized you made a significant mistake at work?",
+      "category": "error_handling",
+      "context": "Tests accountability and problem-solving"
+    },
+    {
+      "question": "How do you handle receiving negative feedback from a client or stakeholder?",
+      "category": "professional_maturity",
+      "context": "Tests resilience and client management"
+    }
+  ],
+  "loyalty_questions": [
+    {
+      "question": "What do you know about our company and why do you want to work here?",
+      "category": "company_knowledge",
+      "context": "Tests research and genuine interest"
+    },
+    {
+      "question": "How do you see yourself contributing to our transformation objectives?",
+      "category": "transformation_alignment",
+      "context": "Critical in SA - BEE and diversity goals"
+    },
+    {
+      "question": "What are your long-term career goals and how does this role fit?",
+      "category": "career_alignment",
+      "context": "Tests retention likelihood"
+    },
+    {
+      "question": "What attracts you to our industry specifically?",
+      "category": "industry_commitment",
+      "context": "Tests sector interest"
+    },
+    {
+      "question": "How do you feel about our company's values around diversity and inclusion?",
+      "category": "values_alignment",
+      "context": "Tests D&I consciousness"
+    },
+    {
+      "question": "What would make you stay with a company long-term?",
+      "category": "retention_factors",
+      "context": "Tests engagement drivers"
+    },
+    {
+      "question": "Are you currently interviewing elsewhere?",
+      "category": "market_position",
+      "context": "Tests demand and urgency"
+    },
+    {
+      "question": "What is your understanding of B-BBEE and its importance in South Africa?",
+      "category": "transformation_awareness",
+      "context": "Tests knowledge of SA business context"
+    },
+    {
+      "question": "How would you support our commitment to employment equity?",
+      "category": "ee_commitment",
+      "context": "Tests alignment with EE objectives"
+    },
+    {
+      "question": "Where do you see yourself in five years within our organization?",
+      "category": "internal_growth",
+      "context": "Tests ambition and retention"
+    }
+  ],
+  "competency_behavioral_questions": [
+    {
+      "question": "Tell us about a time when you had to lead a team through a challenging project.",
+      "category": "leadership",
+      "competency": "Leadership"
+    },
+    {
+      "question": "Describe a situation where you had to analyze complex information to make a decision.",
+      "category": "analytical_thinking",
+      "competency": "Analytical Skills"
+    },
+    {
+      "question": "Give an example of how you have built effective relationships with stakeholders.",
+      "category": "stakeholder_management",
+      "competency": "Relationship Building"
+    },
+    {
+      "question": "Tell us about a time when you had to manage competing priorities.",
+      "category": "prioritization",
+      "competency": "Time Management"
+    },
+    {
+      "question": "Describe a situation where you identified a problem and took initiative to solve it.",
+      "category": "problem_solving",
+      "competency": "Initiative"
+    },
+    {
+      "question": "Give an example of a time when you had to influence someone to see your point of view.",
+      "category": "influence",
+      "competency": "Persuasion"
+    },
+    {
+      "question": "Tell us about a project where you had to work collaboratively with diverse team members.",
+      "category": "collaboration",
+      "competency": "Teamwork"
+    },
+    {
+      "question": "Describe how you have handled a high-pressure situation with tight deadlines.",
+      "category": "pressure_management",
+      "competency": "Resilience"
+    },
+    {
+      "question": "Give an example of when you had to learn a new skill quickly to complete a task.",
+      "category": "learning_agility",
+      "competency": "Adaptability"
+    },
+    {
+      "question": "Tell us about a time when you had to communicate complex information to a non-technical audience.",
+      "category": "communication",
+      "competency": "Communication Skills"
+    },
+    {
+      "question": "Describe a situation where you had to negotiate to achieve a win-win outcome.",
+      "category": "negotiation",
+      "competency": "Negotiation"
+    },
+    {
+      "question": "Give an example of how you have driven innovation or improvement in your work.",
+      "category": "innovation",
+      "competency": "Creativity"
+    },
+    {
+      "question": "Tell us about a time when you had to manage a difficult client relationship.",
+      "category": "client_management",
+      "competency": "Customer Service"
+    },
+    {
+      "question": "Describe a situation where you had to make a decision with incomplete information.",
+      "category": "decision_making",
+      "competency": "Judgment"
+    },
+    {
+      "question": "Give an example of how you have mentored or developed a colleague.",
+      "category": "development",
+      "competency": "Coaching"
+    },
+    {
+      "question": "Tell us about a time when you had to manage a project from start to finish.",
+      "category": "project_management",
+      "competency": "Project Management"
+    },
+    {
+      "question": "Describe how you have handled a situation where team members had conflicting opinions.",
+      "category": "conflict_resolution",
+      "competency": "Mediation"
+    },
+    {
+      "question": "Give an example of a goal you set and how you achieved it.",
+      "category": "goal_achievement",
+      "competency": "Results Orientation"
+    },
+    {
+      "question": "Tell us about a time when you had to adapt to a significant organizational change.",
+      "category": "change_management",
+      "competency": "Change Agility"
+    },
+    {
+      "question": "Describe a situation where you had to demonstrate financial acumen or budget management.",
+      "category": "financial_management",
+      "competency": "Financial Literacy"
+    }
+  ],
+  "follow_up_questions": [
+    {
+      "question": "Can you give me a specific example of that?",
+      "category": "specificity",
+      "context": "Probing for concrete evidence"
+    },
+    {
+      "question": "What was the measurable outcome?",
+      "category": "results_focus",
+      "context": "SA interviews emphasize quantifiable results"
+    },
+    {
+      "question": "What was your specific role in that outcome?",
+      "category": "contribution_clarity",
+      "context": "Tests individual vs team contribution"
+    },
+    {
+      "question": "How did you measure success in that situation?",
+      "category": "metrics",
+      "context": "Tests data-driven approach"
+    },
+    {
+      "question": "What would you do differently next time?",
+      "category": "reflection",
+      "context": "Tests learning orientation"
+    },
+    {
+      "question": "How did your approach impact the broader team or organization?",
+      "category": "impact_assessment",
+      "context": "Tests systems thinking"
+    },
+    {
+      "question": "What was the biggest challenge you faced in that situation?",
+      "category": "challenge_identification",
+      "context": "Tests self-awareness"
+    },
+    {
+      "question": "How long did that take, and what was the timeline?",
+      "category": "timeframe",
+      "context": "Tests project management awareness"
+    },
+    {
+      "question": "Who else was involved, and how did you collaborate?",
+      "category": "collaboration_detail",
+      "context": "Tests teamwork specifics"
+    },
+    {
+      "question": "What feedback did you receive on your performance?",
+      "category": "feedback_integration",
+      "context": "Tests receptivity to input"
+    }
+  ],
+  "company_specific_questions": {
+    "Standard_Bank": [
+      {
+        "question": "What are your thoughts on 'Africa is our home, we drive her growth'?",
+        "category": "mission_alignment"
+      },
+      {
+        "question": "How do you see Standard Bank's role in driving growth across Africa?",
+        "category": "strategic_thinking"
+      },
+      {
+        "question": "Tell us about a time when you had to deal with a difficult coworker. How did you overcome that?",
+        "category": "interpersonal_skills"
+      },
+      {
+        "question": "What would you do if your friend was cheating in an exam or at work?",
+        "category": "ethical_judgment"
+      },
+      {
+        "question": "How do you conduct yourself when representing an organization?",
+        "category": "professionalism"
+      },
+      {
+        "question": "What do you know about our graduate program structure?",
+        "category": "program_knowledge"
+      }
+    ],
+    "MTN": [
+      {
+        "question": "Tell me about the biggest challenge you faced in your career, how you resolved it, and what you learned.",
+        "category": "resilience"
+      },
+      {
+        "question": "How do you prioritize your tasks when everything seems urgent?",
+        "category": "prioritization"
+      },
+      {
+        "question": "Why did you choose to study your academic major?",
+        "category": "motivation"
+      },
+      {
+        "question": "Why are you the best candidate for this role?",
+        "category": "self_advocacy"
+      },
+      {
+        "question": "Describe a time when you solved a complex problem under pressure.",
+        "category": "problem_solving"
+      },
+      {
+        "question": "What do you know about MTN's operations across Africa and the Middle East?",
+        "category": "company_knowledge"
+      }
+    ],
+    "Sasol": [
+      {
+        "question": "What is your managerial style?",
+        "category": "leadership_style"
+      },
+      {
+        "question": "Why do you think you deserve this job?",
+        "category": "self_worth"
+      },
+      {
+        "question": "How do you cope with pressure in high-stakes environments?",
+        "category": "stress_management"
+      },
+      {
+        "question": "Where do you see yourself in 5 years?",
+        "category": "career_planning"
+      },
+      {
+        "question": "What do you know about Sasol's energy and chemical operations?",
+        "category": "industry_knowledge"
+      },
+      {
+        "question": "How do you approach safety in the workplace?",
+        "category": "safety_awareness"
+      }
+    ],
+    "Nedbank": [
+      {
+        "question": "What are your thoughts on the investment industry in South Africa?",
+        "category": "industry_awareness"
+      },
+      {
+        "question": "How would you describe your skills, attitude, and way of thinking?",
+        "category": "self_assessment"
+      },
+      {
+        "question": "What do you know about Nedbank's green initiatives and sustainability focus?",
+        "category": "csr_knowledge"
+      },
+      {
+        "question": "Tell us about a time when you had to analyze financial data to make a recommendation.",
+        "category": "analytical_skills"
+      },
+      {
+        "question": "How do you stay current with market trends and financial news?",
+        "category": "continuous_learning"
+      }
+    ],
+    "FNB": [
+      {
+        "question": "How do you handle interactions between yourself and clients?",
+        "category": "client_relations"
+      },
+      {
+        "question": "How good are you at problem-solving in real-time situations?",
+        "category": "problem_solving"
+      },
+      {
+        "question": "Tell us about your previous customer service experience.",
+        "category": "experience"
+      },
+      {
+        "question": "What CRM systems have you worked with previously?",
+        "category": "technical_skills"
+      },
+      {
+        "question": "What do you know about FNB's innovation in digital banking?",
+        "category": "innovation_awareness"
+      },
+      {
+        "question": "How would you handle a frustrated customer complaint?",
+        "category": "customer_service"
+      }
+    ],
+    "Discovery": [
+      {
+        "question": "How would you handle a role-play scenario with a customer call?",
+        "category": "practical_assessment"
+      },
+      {
+        "question": "What do you know about Discovery's shared-value insurance model?",
+        "category": "business_model"
+      },
+      {
+        "question": "How do you see yourself contributing to our health and wellness focus?",
+        "category": "values_alignment"
+      },
+      {
+        "question": "Describe a time when you had to handle multiple customer interactions simultaneously.",
+        "category": "multitasking"
+      },
+      {
+        "question": "What motivates you about working in the health and financial services sector?",
+        "category": "motivation"
+      }
+    ],
+    "Vodacom": [
+      {
+        "question": "Why Vodacom? What attracts you to our company specifically?",
+        "category": "company_interest"
+      },
+      {
+        "question": "Tell us about a time you solved a problem using technology.",
+        "category": "tech_problem_solving"
+      },
+      {
+        "question": "Do you consider yourself a customer-friendly person?",
+        "category": "service_orientation"
+      },
+      {
+        "question": "What computer skills do you possess?",
+        "category": "technical_skills"
+      },
+      {
+        "question": "What do you know about Vodacom's role in connecting Africa?",
+        "category": "mission_knowledge"
+      }
+    ],
+    "Capitec": [
+      {
+        "question": "What makes you the best candidate for this position?",
+        "category": "self_advocacy"
+      },
+      {
+        "question": "How do you handle conflict in a team environment?",
+        "category": "conflict_resolution"
+      },
+      {
+        "question": "What do you know about Capitec Bank and our simplified banking model?",
+        "category": "company_knowledge"
+      },
+      {
+        "question": "How do you stay updated with banking regulations?",
+        "category": "regulatory_awareness"
+      },
+      {
+        "question": "Describe a difficult situation with a customer and how you handled it.",
+        "category": "customer_service"
+      },
+      {
+        "question": "What is your approach to ensuring compliance in financial transactions?",
+        "category": "compliance"
+      }
+    ]
+  },
+  "closing_questions": [
+    {
+      "question": "Do you have any questions for us?",
+      "category": "candidate_questions",
+      "context": "Standard closing - expects thoughtful questions"
+    },
+    {
+      "question": "What are your salary expectations for this role?",
+      "category": "compensation",
+      "context": "Direct approach to compensation"
+    },
+    {
+      "question": "When would you be able to start?",
+      "category": "availability",
+      "context": "Logistics and notice period"
+    },
+    {
+      "question": "Is there anything else you'd like to add that we haven't covered?",
+      "category": "final_opportunity",
+      "context": "Open-ended closing"
+    },
+    {
+      "question": "What is your understanding of our next steps in the process?",
+      "category": "process_clarity",
+      "context": "Tests engagement and interest"
+    },
+    {
+      "question": "Thank you for your time. We'll be in touch soon.",
+      "category": "closing",
+      "context": "Professional conclusion"
+    }
+  ],
+  "metadata": {
+    "total_questions": 150,
+    "sources": ["Glassdoor", "Indeed South Africa", "LinkedIn", "MyBroadband", "Armstrong Appointments"],
+    "last_updated": "2026-02-23",
+    "research_notes": "Based on interview experiences from major South African employers including Standard Bank, MTN, Sasol, Nedbank, FNB, Discovery, Vodacom, and Capitec. SA interviews emphasize direct communication, confidence, diversity consciousness (BEE/Transformation), and competency demonstration. Less hierarchical than Nigeria, more direct than Kenya. Ubuntu philosophy and transformation awareness are key cultural markers."
+  }
+}
