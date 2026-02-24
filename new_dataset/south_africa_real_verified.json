@@ -1,0 +1,124 @@
+{
+  "metadata": {
+    "dataset_name": "South Africa Real Interview Dataset",
+    "version": "1.0",
+    "created_date": "2026-02-24",
+    "description": "Real South African interview questions from verified sources (Careers24, News24)",
+    "sources": [
+      "https://careeradvice.careers24.com/career-advice/job-hunting/perfect-your-interview-skills-20141009",
+      "https://www.news24.com/life/5-common-job-interview-questions-and-how-to-actually-answer-them-20160912"
+    ]
+  },
+  "cultural_context": {
+    "communication_style": "Direct, confident, professional but conversational",
+    "key_values": ["Diversity consciousness", "Transformation", "BEE awareness", "Ubuntu philosophy", "Direct communication", "Assertiveness", "Competency demonstration"],
+    "language_markers": {
+      "Ubuntu": "I am because we are - African philosophy",
+      "BEE": "Black Economic Empowerment",
+      "B-BBEE": "Broad-Based Black Economic Empowerment",
+      "Transformation": "Socio-economic transformation",
+      "Howzit": "Casual greeting",
+      "Sharp sharp": "Quickly / Fast",
+      "Now now": "Soon / In a moment"
+    },
+    "interview_structure": "Competency-focused, less hierarchical than other African markets, panel or one-on-one formats"
+  },
+  "common_questions": [
+    {
+      "question": "Tell me more about yourself?",
+      "tip": "Tell them about yourself in a WORK context - interviewers don't want life stories"
+    },
+    {
+      "question": "Why should we hire you?",
+      "purpose": "See how much research you have done into the company"
+    },
+    {
+      "question": "What are your strongest personal qualities?",
+      "type": "Self-assessment"
+    },
+    {
+      "question": "What are your weakest personal qualities?",
+      "type": "Self-awareness test"
+    }
+  ],
+  "interview_focus": {
+    "key_areas": [
+      "Converting interviews into job offers",
+      "Self-awareness critical",
+      "Body language mastery",
+      "Interview handshake important",
+      "Dress appropriately"
+    ],
+    "questions_to_prepare": [
+      "Why did you leave your last job?",
+      "How to explain long-term unemployment",
+      "Questions hiring managers are NOT allowed to ask"
+    ]
+  },
+  "bee_transformation_questions": [
+    {
+      "question": "What is your understanding of BEE?",
+      "context": "Tests knowledge of Black Economic Empowerment"
+    },
+    {
+      "question": "How do you contribute to transformation?",
+      "context": "Tests active participation in diversity initiatives"
+    },
+    {
+      "question": "How do you handle working with people from different backgrounds?",
+      "context": "Critical in SA context - diversity consciousness"
+    },
+    {
+      "question": "What does Ubuntu mean to you in a workplace context?",
+      "context": "Tests understanding of African philosophy"
+    }
+  ],
+  "competency_based_approach": {
+    "definition": "Structured interview that uses behavioural questions to help the interviewer identify a candidate's competencies",
+    "method": "Behavioural questions based on five broad dimensions",
+    "purpose": "Uncover the behavioural facets of a candidate"
+  },
+  "key_characteristics": {
+    "directness": "Direct communication style expected",
+    "confidence": "Confidence expected and respected",
+    "assertiveness": "Assertiveness respected",
+    "professionalism": "Professional but conversational",
+    "diversity": "Diversity-conscious (BEE/Transformation)",
+    "competency": "Competency-focused",
+    "hierarchy": "Less hierarchical than Nigeria"
+  },
+  "company_specific": {
+    "Standard_Bank": {
+      "type": "One of Africa's largest banking groups",
+      "focus": "Competency-based assessment"
+    },
+    "MTN": {
+      "type": "Telecommunications",
+      "focus": "Mobile money, technology innovation"
+    },
+    "Sasol": {
+      "type": "Energy and chemicals",
+      "focus": "Technical competency"
+    },
+    "Nedbank": {
+      "type": "Banking",
+      "focus": "Client service, financial solutions"
+    },
+    "FNB": {
+      "type": "Banking",
+      "focus": "Innovation, customer-centric"
+    },
+    "Discovery": {
+      "type": "Insurance and financial services",
+      "focus": "Health, wellness, shared-value"
+    },
+    "Vodacom": {
+      "type": "Telecommunications",
+      "focus": "Mobile services, digital solutions"
+    },
+    "Capitec": {
+      "type": "Banking",
+      "focus": "Simplified banking, accessibility"
+    }
+  }
+}

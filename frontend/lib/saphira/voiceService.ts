@@ -6,6 +6,8 @@
 import { Country } from './datasetService';
 
 // Voice IDs by country
+// TODO: Add proper Kenyan and South African voice IDs when available
+// For now, Kenya and South Africa use Nigerian voices as placeholders
 const COUNTRY_VOICES: Record<Country, string[]> = {
   nigeria: [
     'tj0Lij6AHHeCO5FylYzu', // Chief Okafor - Authoritative male
@@ -13,13 +15,15 @@ const COUNTRY_VOICES: Record<Country, string[]> = {
     'U7wWSnxIJwCjioxt86mk', // Olaniyi Victor - Warm male
     '77aEIu0qStu8Jwv1EdhX', // Ayinde - Deep male
   ],
+  // TODO: Replace with actual Kenyan voice IDs when user provides them
   kenya: [
-    'Y4Xi1YBz9HedbrvzwylK', // Placeholder - using Nigerian female (replace with Kenyan voice)
-    'U7wWSnxIJwCjioxt86mk', // Placeholder - using Olaniyi (replace with Kenyan voice)
+    'Y4Xi1YBz9HedbrvzwylK', // Placeholder - using Nigerian female (USER TO PROVIDE KENYAN VOICES)
+    'U7wWSnxIJwCjioxt86mk', // Placeholder - using Olaniyi (USER TO PROVIDE KENYAN VOICES)
   ],
+  // TODO: Replace with actual South African voice IDs when user provides them
   south_africa: [
-    'Y4Xi1YBz9HedbrvzwylK', // Placeholder - using Nigerian female (replace with SA voice)
-    'U7wWSnxIJwCjioxt86mk', // Placeholder - using Olaniyi (replace with SA voice)
+    'Y4Xi1YBz9HedbrvzwylK', // Placeholder - using Nigerian female (USER TO PROVIDE SA VOICES)
+    'U7wWSnxIJwCjioxt86mk', // Placeholder - using Olaniyi (USER TO PROVIDE SA VOICES)
   ],
 };
 

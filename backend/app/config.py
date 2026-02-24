@@ -34,9 +34,9 @@ class Settings(BaseSettings):
     SUPABASE_ANON_KEY: str
     SUPABASE_SERVICE_ROLE_KEY: str
     
-    # Stripe
-    STRIPE_SECRET_KEY: str
-    STRIPE_PUBLISHABLE_KEY: str
+    # Paystack (Nigerian Payments)
+    PAYSTACK_SECRET_KEY: str
+    PAYSTACK_BASE_URL: str = "https://api.paystack.co"
     
     # Email (Resend)
     RESEND_API_KEY: str

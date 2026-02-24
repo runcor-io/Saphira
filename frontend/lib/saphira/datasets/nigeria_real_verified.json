@@ -1,0 +1,246 @@
+{
+  "metadata": {
+    "dataset_name": "Nigeria Real Interview Dataset",
+    "version": "1.0",
+    "created_date": "2026-02-24",
+    "description": "Real Nigerian interview questions from verified sources (MyJobMag, Legit.ng, Jobberman, Jarushub, Glassdoor)",
+    "sources": [
+      "https://www.myjobmag.com/blog/673/top-100-job-interview-questions-and-answers",
+      "https://www.legit.ng/1195450-top-10-bank-interview-questions-answers-nigeria.html",
+      "https://www.jobberman.com/discover/interview-questions-answers",
+      "https://www.jarushub.com/common-interview-questions-and-answer-tips/",
+      "https://www.myjobmag.com/blog/734/guaranty-trust-bank-gtb-interview-process-questions-and-answers",
+      "Glassdoor Nigeria"
+    ]
+  },
+  "cultural_context": {
+    "communication_style": "Indirect, softened, hierarchical",
+    "key_values": ["Respect", "Loyalty", "Hierarchy", "Religious awareness"],
+    "honorifics": ["Chief", "Dr.", "Engr.", "Barr.", "Mr.", "Mrs.", "Ms.", "Sir", "Ma"],
+    "pidgin_phrases": {
+      "How far?": "How are you? / What's up?",
+      "No wahala": "No problem / It's okay",
+      "Oya": "Let's go / Come on / Okay",
+      "I dey": "I'm fine / I'm here",
+      "Abeg": "Please",
+      "Ehen": "I see / Okay / Continue",
+      "Na so": "Is that so? / I understand",
+      "Sharp sharp": "Quickly / Fast"
+    },
+    "conversational_fillers": [
+      "Alright, let's proceed",
+      "Okay, that's good",
+      "Interesting",
+      "Go on",
+      "I see",
+      "Why is that?",
+      "Is that so?",
+      "I understand",
+      "Let's move on",
+      "That's fine"
+    ]
+  },
+  "phrasing_preferences": {
+    "Western": {
+      "elaborate_on_experience": "Elaborate on your experience",
+      "what_motivates_you": "What motivates you?",
+      "what_are_your_weaknesses": "What are your weaknesses?",
+      "can_you_describe": "Can you describe...",
+      "walk_me_through": "Walk me through..."
+    },
+    "Nigerian": {
+      "elaborate_on_experience": "Tell me about your experience",
+      "what_motivates_you": "What drives you?",
+      "what_are_your_weaknesses": "What are your areas of improvement?",
+      "can_you_describe": "Tell me about...",
+      "walk_me_through": "Start from the beginning..."
+    }
+  },
+  "company_specific": {
+    "GTBank": {
+      "core_values": ["Simplicity", "Professionalism", "Service", "Friendliness", "Excellence", "Trustworthiness", "Social Responsibility", "Innovation"],
+      "interview_stages": [
+        {
+          "stage": 1,
+          "name": "Computer Based Assessment",
+          "components": ["Spatial reasoning", "Abstract reasoning", "Verbal reasoning", "Logical reasoning", "Data interpretation"],
+          "duration": "12 minutes",
+          "note": "Time-pressured"
+        },
+        {
+          "stage": 2,
+          "name": "Pre-Interview Documentation",
+          "components": ["Qualifications verification", "Essay writing", "Document verification"]
+        },
+        {
+          "stage": 3,
+          "name": "Panel Interview",
+          "components": ["Competency-based questions", "Panel from HR, management, employees"]
+        }
+      ],
+      "questions": [
+        "Where do you want to be in 5 years?",
+        "Why do you want to work with GTB?",
+        "Where do you see yourself in the next 3 years?",
+        "How do you handle a troublesome customer?",
+        "What are your strengths and weaknesses?"
+      ]
+    },
+    "Access_Bank": {
+      "questions": [
+        "Tell us about yourself",
+        "Tell us about where you come from",
+        "Tell us what you know about the bank",
+        "How can you fit your course of study into what you've applied to?",
+        "Why did you choose our bank?",
+        "Do you have any relative or past experience about the job?",
+        "Tell me about when you've had to attend to an angry customer in the past",
+        "How would you handle a rude or disrespectful customer?",
+        "What makes you unique?"
+      ]
+    },
+    "Flutterwave": {
+      "questions": [
+        "Past experiences",
+        "Can you work shifts?",
+        "What makes you suitable for the job",
+        "What is Your Salary Expectation?",
+        "Are You a Leader or a Follower?",
+        "Why Do You Want To Leave Your Current Job?",
+        "What Is Your Greatest Accomplishment?",
+        "Why Should We Hire You?",
+        "What is Your Greatest Weakness?",
+        "Why Do You Want This Job?",
+        "How would you design a payment gateway for African markets?",
+        "Explain how you'd handle payment...",
+        "Describe your experience with finance-related projects"
+      ]
+    },
+    "Paystack": {
+      "questions": [
+        "Why do you want to work at Paystack?",
+        "Have you used Paystack before and what features did you find the best?",
+        "What is Your Greatest Weakness?",
+        "Are You a Leader or a Follower?",
+        "Why Do You Want To Leave Your Current Job?",
+        "Why Should We Hire You?",
+        "Why Do You Want This Job?"
+      ],
+      "components": ["Technical problem questions (15-minute call)", "PowerPoint presentation"]
+    }
+  },
+  "question_categories": {
+    "traditional_questions": [
+      {
+        "question": "Tell me about yourself",
+        "variations": ["Can I meet you?", "Who are you?", "Can we know you?", "Can you introduce yourself to us?"],
+        "answer_structure": ["Talk about who you are professionally", "Highlight your competencies", "Talk about why you are here"],
+        "duration": "2-3 minutes",
+        "tips": "Summarize CV, not download it. 5-7 liners. Be chronological. Emphasize achievements subtly."
+      },
+      {
+        "question": "What do you know about our company?",
+        "tips": "Visit company website. Read history, mission, products, management. Check latest news. Know core values."
+      },
+      {
+        "question": "Why do you want to work for us?",
+        "tips": "Give 3 reasons. Show research. Align with company goals."
+      },
+      {
+        "question": "What are your strengths?",
+        "assess": ["Hard skills", "Transferable skills", "Personal traits"],
+        "tips": "Choose strengths relevant to position. Stay away from personal qualities, concentrate on professional traits."
+      }
+    ],
+    "bank_specific_questions": [
+      {
+        "question": "Introduce yourself, please?",
+        "tips": "Summarize CV: Name, age, education, qualification, professional achievements, experience"
+      },
+      {
+        "question": "Is there anything not on CV we must know?",
+        "tips": "Mention rewards, contests, prizes, volunteer projects, exchange student experience, scholarships"
+      },
+      {
+        "question": "Why do you want to work in the banking industry?",
+        "warning": "Never say you're looking into any possible industry because you've been unemployed"
+      },
+      {
+        "question": "Tell us about your last mistake and what you have learned from it?",
+        "tips": "Show ability to avoid conflicts, willingness to find compromise"
+      },
+      {
+        "question": "Fraud Scenario",
+        "text": "Let's say you got a new job and found a fraud in your department. However, your predecessor is now your boss. What would you do?",
+        "purpose": "Tests principles and ethical standards"
+      },
+      {
+        "question": "How important is customer service to you?",
+        "follow_ups": ["Have you ever worked with a difficult client?", "How do you handle such situations?"]
+      },
+      {
+        "question": "How many houses are in Lagos?",
+        "type": "Logic test",
+        "purpose": "Tests handling of difficult tasks, thought process",
+        "note": "Not looking for exact answer"
+      }
+    ],
+    "tough_questions": [
+      {
+        "question": "What is your greatest weakness?",
+        "bad_answers": ["I'm always late", "I tend to miss deadlines", "I'm not great", "I tend to fold under pressure"],
+        "suggested_answer": "My writing skills are quite impressive but I've been working towards doing more in a short period of time and producing quality work even under pressure. I'm taking conscious steps to ensure I curb my weakness of underperforming in a high-pressure situation"
+      },
+      {
+        "question": "Why should we hire you?",
+        "bad_answers": ["I'm passionate about what I do", "I'd be of value to your organization"],
+        "suggested_answer": "In my current (previous) role as a marketing manager, I have been successful in generating 70% of the company's leads which had a 50% conversion rate. Seeing that your company is also customer-centric, it has always been part of my job and personal passion to ensure that decisions are made with the customer in mind. These are the kind of results and performance I'm bringing to the table."
+      },
+      {
+        "question": "Why are you leaving your current company?",
+        "bad_answers": ["I hated the job", "I don't like my boss", "I hated the work environment"],
+        "suggested_answer": "While I highly valued my time at my previous company, there are no longer learning opportunities or career growth opportunities. Being at the company was a huge learning curve for me but I am seeking new challenges and opportunities that align with my personal career goals and aspirations."
+      },
+      {
+        "question": "How well do you work under pressure?",
+        "bad_answers": ["I would say I work well under pressure", "I can't work well under pressure"],
+        "suggested_answer": "Honestly, I'm someone who thrives under pressure. It's not always easy but it must be done. I have grown the habit of being proactive, so as to avoid any situation that will put me under pressure in the first place. The key to thriving is really planning and time management - both are skills I have up my sleeve."
+      },
+      {
+        "question": "How much do you currently earn?",
+        "bad_answers": ["I earn N150,000", "I can't disclose that information"],
+        "suggested_answer": "Well, I have a very robust job description and even go the extra mile to execute tasks outside my JD. I currently earn somewhere between N150,000 - N250,000, this is subject to further increase scheduled by the company"
+      },
+      {
+        "question": "What is your salary expectation?",
+        "bad_answers": ["I expect nothing less that N250,000", "I'm looking at receiving N250,000 net"],
+        "suggested_answer": "Considering the job description and working conditions, I am looking at anywhere between N250,000 to N350,000 monthly. I'm more than open to negotiating this, depending upon your benefits package."
+      },
+      {
+        "question": "Why have you been out of work? / Can you explain the gaps in your employment history?",
+        "bad_answers": ["I couldn't get a job"],
+        "suggested_answer": "I have been out of work before due to several factors like the company getting sold, change of location, as well as health crisis. But during each gap, I took time to improve my skills, gain additional knowledge and really take time out to assess my career trajectory."
+      }
+    ],
+    "pressure_questions": [
+      {
+        "question": "Why is your CGPA low?",
+        "variations": ["Your grades are not so strong. Why is that?", "You graduated with a 2.2. Can you explain?", "Tell me about your academic performance"],
+        "context": "Very common in Nigerian interviews. CGPA matters significantly."
+      },
+      {
+        "question": "Why NYSC gap?",
+        "context": "Mandatory service year creates scrutiny"
+      },
+      {
+        "question": "Why haven't you gotten a job since graduation?",
+        "context": "High unemployment context"
+      },
+      {
+        "question": "Are you planning to relocate?",
+        "variations": ["Do you have plans to travel?", "Will you stay long with us?", "How long do you plan to stay?"],
+        "context": "Japa (emigration) probe - major concern for Nigerian employers"
+      }
+    ]
+  }
+}

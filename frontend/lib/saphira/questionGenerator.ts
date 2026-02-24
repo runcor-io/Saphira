@@ -13,7 +13,7 @@ import {
 import { getUseCaseConfig } from './useCaseConfigs';
 import { buildSystemPrompt, selectCulturalResponse } from './responseSelector';
 import { getFewShotExamples } from './datasetUtils';
-import { Country, getRandomQuestion } from './datasetService';
+import { Country, getRandomQuestion, getCompanyQuestions, getQuestionsByCategory } from './verifiedDataset';
 
 /**
  * Generate next question or response using GPT-4
@@ -35,14 +35,55 @@ export async function generateNextQuestion(
     country = 'nigeria',
   } = request;
 
-  // Try to get question from dataset first (for common questions)
-  const datasetQuestion = getRandomQuestion(country, 'personality');
-  
-  // If we have a dataset question and it's early in the conversation, use it
+  // Try to get question from verified dataset first
   const conversationLength = conversationHistory.filter(m => m.sender === 'panel-member').length;
-  if (datasetQuestion && conversationLength < 3 && Math.random() < 0.5) {
+  
+  // 1. Try company-specific questions if available (for job interviews)
+  if (useCase === 'job_interview' && request.company && request.company !== 'general') {
+    const companyQuestions = getCompanyQuestions(request.company, country);
+    if (companyQuestions.length > 0 && conversationLength < companyQuestions.length) {
+      // Select a question that hasn't been asked yet
+      const askedSet = new Set(previousQuestions.map(q => q.toLowerCase().trim()));
+      const availableQuestions = companyQuestions.filter(q => !askedSet.has(q.question.toLowerCase().trim()));
+      
+      if (availableQuestions.length > 0) {
+        const randomIndex = Math.floor(Math.random() * Math.min(3, availableQuestions.length));
+        const selectedQuestion = availableQuestions[randomIndex];
+        return {
+          text: selectedQuestion.question,
+          isQuestion: true,
+          tone: 'professional',
+          suggestedFollowUp: selectedQuestion.context,
+        };
+      }
+    }
+  }
+  
+  // 2. Try category-based questions from verified dataset
+  const category = conversationLength < 2 ? 'traditional' : 
+                   conversationLength < 4 ? 'personality' : 
+                   conversationLength < 6 ? 'tough' : 'behavioral';
+  
+  const categoryQuestions = getQuestionsByCategory(country, category);
+  if (categoryQuestions.length > 0 && Math.random() < 0.6) {
+    const askedSet = new Set(previousQuestions.map(q => q.toLowerCase().trim()));
+    const availableQuestions = categoryQuestions.filter(q => !askedSet.has(q.question.toLowerCase().trim()));
+    
+    if (availableQuestions.length > 0) {
+      const randomQuestion = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+      return {
+        text: randomQuestion.question,
+        isQuestion: true,
+        tone: 'professional',
+      };
+    }
+  }
+  
+  // 3. Try general dataset questions
+  const datasetQuestion = getRandomQuestion(country, 'personality');
+  if (datasetQuestion && Math.random() < 0.3) {
     return {
-      text: datasetQuestion,
+      text: datasetQuestion.question,
       isQuestion: true,
       tone: 'professional',
     };

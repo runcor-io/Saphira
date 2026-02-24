@@ -2,16 +2,35 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Mail } from 'lucide-react';
+import { ArrowLeft, Mail, Loader2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement password reset
-    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (resetError) {
+        setError(resetError.message);
+      } else {
+        setSubmitted(true);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -19,7 +38,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
+          <span className="text-2xl">🔷</span>
           <span className="text-xl font-bold text-charcoal">SAPHIRA</span>
         </div>
 
@@ -46,9 +65,24 @@ export default function ForgotPasswordPage() {
               <p className="text-gray-500 text-sm">
                 We&apos;ve sent a password reset link to {email}
               </p>
+              <p className="text-gray-400 text-xs mt-4">
+                Didn&apos;t receive it? Check your spam folder or{' '}
+                <button 
+                  onClick={() => setSubmitted(false)}
+                  className="text-wood hover:underline"
+                >
+                  try again
+                </button>
+              </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+              
               <div>
                 <label className="block text-sm font-medium text-charcoal mb-1.5">
                   Email
@@ -60,14 +94,23 @@ export default function ForgotPasswordPage() {
                   placeholder="you@example.com"
                   className="w-full px-4 py-2.5 bg-linen rounded-xl text-charcoal placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-wood/20"
                   required
+                  disabled={loading}
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-wood text-white py-2.5 rounded-xl font-semibold hover:bg-wood-dark transition-colors"
+                disabled={loading}
+                className="w-full bg-wood text-white py-2.5 rounded-xl font-semibold hover:bg-wood-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Send Reset Link
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Reset Link'
+                )}
               </button>
             </form>
           )}

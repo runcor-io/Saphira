@@ -323,14 +323,15 @@ export async function processResponse(
     useCase: session.useCase,
     jobRole: session.topic,
     topic: session.topic,
+    company: session.company, // NEW: Pass company for company-specific questions
     currentPanelMember: nextPanelMember,
     conversationHistory: session.messages,
     candidateLastResponse: candidateResponse,
     previousQuestions: session.questionsAsked,
     culturalContext,
     responseAnalysis,
-    personalityPrompt, // NEW: Pass personality context
-    country: session.country, // NEW: Pass country for cultural adaptation
+    personalityPrompt,
+    country: session.country,
   });
   
   // === STEP 4: Add Thinking Delay (natural pacing) ===

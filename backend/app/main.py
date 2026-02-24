@@ -9,6 +9,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
+from app.auth.router import router as auth_router
+from app.routes.credits import router as credits_router
+from app.routes.payments import router as payments_router
+from app.routes.users import router as users_router
 
 settings = get_settings()
 
@@ -38,6 +42,12 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    
+    # Include all routers
+    app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+    app.include_router(credits_router, prefix="/credits", tags=["Credits"])
+    app.include_router(payments_router, prefix="/payments", tags=["Payments"])
+    app.include_router(users_router, prefix="/users", tags=["Users"])
     
     # Health check endpoint
     @app.get("/", tags=["Health"])

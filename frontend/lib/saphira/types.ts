@@ -214,6 +214,7 @@ export interface QuestionGenerationRequest {
   useCase: UseCase;
   jobRole?: string;
   topic?: string;
+  company?: string; // Company-specific questions (e.g., 'GTBank', 'Safaricom')
   currentPanelMember: PanelMember;
   conversationHistory: SaphiraMessage[];
   candidateLastResponse: string;

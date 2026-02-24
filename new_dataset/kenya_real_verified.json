@@ -1,0 +1,153 @@
+{
+  "metadata": {
+    "dataset_name": "Kenya Real Interview Dataset",
+    "version": "1.0",
+    "created_date": "2026-02-24",
+    "description": "Real Kenyan interview questions from verified sources (BrighterMonday, Career Group Africa)",
+    "sources": [
+      "https://www.brightermonday.co.ke/discover/how-to-answer-interview-questions",
+      "https://careergroupafrica.com/mastering-the-interview-game-in-kenya/"
+    ]
+  },
+  "cultural_context": {
+    "communication_style": "Respectful but modern, professional but warm, British-influenced",
+    "key_values": ["Teamwork", "Collaboration", "Respect for authority", "Long-term growth", "Harambee spirit"],
+    "language_markers": {
+      "Karibu": "Welcome - builds rapport",
+      "Asante": "Thank you",
+      "Habari": "How are you / News",
+      "Harambee": "Pulling together / Community spirit"
+    },
+    "interview_structure": "Panel interviews common, British-influenced corporate structure",
+    "salary_ranges": {
+      "entry_level": "KSh 50,000 - 80,000",
+      "mid_level": "KSh 150,000+",
+      "executive": "KSh 500,000+"
+    }
+  },
+  "common_questions": [
+    {
+      "question": "Tell me about yourself",
+      "method": "STAR",
+      "structure": "Present-Past-Future",
+      "duration": "60-90 seconds"
+    },
+    {
+      "question": "How did you hear about this position?",
+      "formula": "Source + what attracted you + fit"
+    },
+    {
+      "question": "Why do you want this job?",
+      "framework": "Company-Role-You",
+      "components": [
+        "Company: mission/product/impact you genuinely admire",
+        "Role: specific responsibilities that energise you",
+        "You: proven skills that drive results"
+      ]
+    },
+    {
+      "question": "Why should we hire you?",
+      "framework": "Pain-Proof-Payoff",
+      "components": [
+        "Pain: likely team challenge",
+        "Proof: your relevant achievement/metric",
+        "Payoff: outcome they can expect"
+      ]
+    },
+    {
+      "question": "What are your greatest professional strengths?",
+      "approach": "Choose 3 strengths that map to the job description, each with evidence"
+    },
+    {
+      "question": "What is your weakness?",
+      "approach": "Pick a fixable weakness and show actions + progress",
+      "example": "I used to over-manage. I adopted RACI, weekly retros, and targeted delegation; it's increased team ownership and freed time for strategy."
+    },
+    {
+      "question": "What is your greatest career achievement?",
+      "method": "STAR (Situation-Task-Action-Result)",
+      "duration": "90-120 seconds",
+      "tips": "Quantify; tie to business metrics"
+    },
+    {
+      "question": "Where do you see yourself in the next 5 years?",
+      "framework": {
+        "years_1_2": "Master role competencies; deliver metric/OKR",
+        "years_3_4": "Lead cross-functional initiatives; mentor juniors",
+        "year_5": "Lead/SME contributing where you create the most value"
+      }
+    },
+    {
+      "question": "What does your former boss say about you?",
+      "sample": "My manager would highlight reliability, pace, and crisp updates. On [project], I owned execution and consistently hit milestones."
+    },
+    {
+      "question": "Why do you want to leave your current job?",
+      "approach": "Keep it positive and forward-looking",
+      "sample": "I've had three strong years at [Company] and was recognised for teamwork and problem-solving. I'm now seeking a broader scope in [area] that [Company] offers."
+    }
+  ],
+  "interview_landscape": {
+    "key_sectors": ["Tech", "Finance", "Manufacturing"],
+    "focus_by_level": {
+      "entry_level": "Potential and enthusiasm",
+      "mid_level": "Experience and problem-solving",
+      "executive": "Leadership and strategic vision"
+    },
+    "valued_traits": ["Respect", "Punctuality", "Blend of global and local knowledge"]
+  },
+  "preparation_tips": {
+    "research": "Read company website, recent news, social media. For Safaricom or Equity Bank, understand community impact and innovations.",
+    "entry_level": "Focus on how your education aligns with the role",
+    "mid_level": "Prepare examples of past achievements using STAR method",
+    "executive": "Be ready to discuss market trends, like Kenya's digital economy push"
+  },
+  "logistics": {
+    "traffic": "Nairobi traffic unpredictable - arrive 30 minutes early",
+    "tools": "Use Google Maps for real-time updates",
+    "virtual_interviews": "Test internet - Safaricom or Zuku connections can fluctuate"
+  },
+  "dress_code": {
+    "general": "Smart casual works for most",
+    "finance_law": "Formal suits",
+    "women": "Modest attire reflecting cultural norms"
+  },
+  "entry_level_tips": {
+    "what_employers_look_for": ["Eagerness to learn", "Adaptability"],
+    "highlight": "Internships or volunteer work - NYSC equivalents or community projects count big",
+    "answer_duration": "1-2 minutes",
+    "good_questions_to_ask": "What growth opportunities are there?",
+    "follow_up": "Send thank-you email within 24 hours"
+  },
+  "mid_level_strategies": {
+    "format": "Panel setups or case studies common",
+    "use_metrics": "I increased sales by 20% at my previous role in a Nairobi retail firm",
+    "cultural_tip": "Show respect to senior interviewers (hierarchy valued)",
+    "blend": "International best practices with local insights like 'harambee' teamwork spirit",
+    "virtual": "Ensure quiet background - no boda boda horns"
+  },
+  "executive_level": {
+    "format": "Less about questions, more about discussions",
+    "expect": "Probes on vision: 'How would you drive growth in East Africa's market?'",
+    "networking": "Events at iHub or professional associations",
+    "demonstrate": "Leadership through mentoring stories",
+    "body_language": "Maintain eye contact, firm handshake"
+  },
+  "company_specific": {
+    "Safaricom": {
+      "focus": "Innovation and community impact",
+      "questions_about": "M-Pesa knowledge",
+      "balance": "Technical + cultural fit"
+    },
+    "Equity_Bank": {
+      "focus": "Financial inclusion",
+      "questions_about": "Agent banking knowledge",
+      "emphasis": "Community focus"
+    },
+    "KCB": {
+      "focus": "Traditional banking",
+      "emphasis": "Customer service",
+      "questions": "Long-term growth"
+    }
+  }
+}

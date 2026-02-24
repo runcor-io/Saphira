@@ -34,7 +34,8 @@ import {
   getCurrentPanelMember,
 } from '@/lib/saphira/panelEngine';
 import { analyzeResponse } from '@/lib/saphira/culturalDetector';
-import { Country } from '@/lib/saphira/datasetService';
+import { Country } from '@/lib/saphira/verifiedDataset';
+import CompanySelector from '@/components/interview/CompanySelector';
 import { generateCountryPanel } from '@/lib/saphira/panelInteraction';
 
 // Icon mapping
@@ -119,7 +120,7 @@ export default function SaphiraInterviewPage() {
   const router = useRouter();
   
   // Configuration states
-  const [step, setStep] = useState<'use-case' | 'configure' | 'panel' | 'interview' | 'summary'>('use-case');
+  const [step, setStep] = useState<'use-case' | 'configure' | 'company' | 'panel' | 'interview' | 'summary'>('use-case');
   const [selectedUseCase, setSelectedUseCase] = useState<UseCase>('job_interview');
   const [topic, setTopic] = useState('');
   const [company, setCompany] = useState('');
@@ -618,7 +619,11 @@ export default function SaphiraInterviewPage() {
                   key={useCase.id}
                   onClick={() => {
                     setSelectedUseCase(useCase.id);
-                    setStep('configure');
+                    if (useCase.id === 'job_interview') {
+                      setStep('company');
+                    } else {
+                      setStep('configure');
+                    }
                   }}
                   className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-left"
                 >
@@ -640,6 +645,30 @@ export default function SaphiraInterviewPage() {
               );
             })}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render company selection for job interviews
+  if (step === 'company') {
+    return (
+      <div className="min-h-screen bg-linen p-4 sm:p-8">
+        <div className="max-w-4xl mx-auto">
+          <button 
+            onClick={() => selectedUseCase === 'job_interview' ? setStep('company') : setStep('use-case')}
+            className="flex items-center gap-2 text-gray-500 mb-6 hover:text-gray-700"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            {selectedUseCase === 'job_interview' ? 'Back to company selection' : 'Back to use cases'}
+          </button>
+          
+          <CompanySelector
+            country={country}
+            selectedCompany={company || 'general'}
+            onSelect={setCompany}
+            onStart={() => setStep('configure')}
+          />
         </div>
       </div>
     );
@@ -726,15 +755,28 @@ export default function SaphiraInterviewPage() {
               </div>
 
               {selectedUseCase === 'job_interview' && (
-                <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">Company (Optional)</label>
-                  <input
-                    type="text"
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                    placeholder="e.g., Access Bank"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-wood"
-                  />
+                <div className="p-4 bg-wood/5 rounded-xl border border-wood/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Selected Company</label>
+                      <p className="text-lg font-semibold text-wood">
+                        {company && company !== 'general' 
+                          ? company.replace(/_/g, ' ') 
+                          : 'General Practice (All Companies)'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setStep('company')}
+                      className="text-sm text-wood hover:underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  {company && company !== 'general' && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      You'll be asked real interview questions from this company
+                    </p>
+                  )}
                 </div>
               )}
               
