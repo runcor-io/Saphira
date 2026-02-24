@@ -29,14 +29,13 @@ import {
 import {
   createSession,
   startSession,
-  processResponse,
   generateSessionSummary,
   getCurrentPanelMember,
 } from '@/lib/saphira/panelEngine';
 import { analyzeResponse } from '@/lib/saphira/culturalDetector';
 import { Country } from '@/lib/saphira/verifiedDataset';
-import CompanySelector from '@/components/interview/CompanySelector';
 import { generateCountryPanel } from '@/lib/saphira/panelInteraction';
+import { generateImmersiveResponse, determinePhase, determineSector } from '@/lib/saphira/immersiveEngine';
 
 // Icon mapping
 const useCaseIcons: Record<string, React.ElementType> = {
@@ -120,7 +119,7 @@ export default function SaphiraInterviewPage() {
   const router = useRouter();
   
   // Configuration states
-  const [step, setStep] = useState<'use-case' | 'configure' | 'company' | 'panel' | 'interview' | 'summary'>('use-case');
+  const [step, setStep] = useState<'use-case' | 'configure' | 'interview' | 'summary'>('use-case');
   const [selectedUseCase, setSelectedUseCase] = useState<UseCase>('job_interview');
   const [topic, setTopic] = useState('');
   const [company, setCompany] = useState('');
@@ -239,7 +238,7 @@ export default function SaphiraInterviewPage() {
   // Track manual stop in a ref so callbacks can access it
   const isManuallyStoppedRef = useRef(false);
   
-  // Handle candidate response with natural pacing
+  // Handle candidate response with IMMERSIVE panel dynamics
   const handleCandidateResponse = useCallback(async (text: string) => {
     if (!sessionRef.current) return;
     const currentSession = sessionRef.current;
@@ -264,69 +263,81 @@ export default function SaphiraInterviewPage() {
     setMessages(sessionWithUserMessage.messages);
     
     try {
-      const result = await processResponse(sessionWithUserMessage, text);
+      // Determine conversation context
+      const phase = determinePhase(sessionWithUserMessage);
+      const sector = determineSector(sessionWithUserMessage.topic, sessionWithUserMessage.company);
       
-      setSession(result.updatedSession);
-      setMessages(result.updatedSession.messages);
+      // Use immersive engine for realistic panel dynamics
+      const result = await generateImmersiveResponse(
+        sessionWithUserMessage,
+        text,
+        {
+          topic: sessionWithUserMessage.topic || 'general',
+          sector,
+          seniority: 'mid',
+          tone: phase === 'opening' ? 'warm' : phase === 'pressure' ? 'challenging' : 'formal',
+          currentPhase: phase,
+        }
+      );
       
-      if (result.feedback) {
-        setCurrentFeedback(result.feedback);
-        setShowFeedback(true);
-      }
+      // Update session with all messages from the panel
+      const updatedSession = {
+        ...sessionWithUserMessage,
+        messages: [...sessionWithUserMessage.messages, ...result.messages],
+        questionCount: sessionWithUserMessage.questionCount + result.messages.filter(m => m.isQuestion).length,
+      };
+      
+      setSession(updatedSession);
+      setMessages(updatedSession.messages);
       
       if (result.isComplete) {
-        const summary = generateSessionSummary(result.updatedSession);
+        const summary = generateSessionSummary(updatedSession);
         setSummary(summary);
         setStep('summary');
         setIsLoading(false);
         return;
       }
       
-      // Get the panel member for the response
-      const member = result.updatedSession.panel.find(
-        m => m.id === result.responseMessage.panelMemberId
-      );
-      
-      // === NATURAL PACING SEQUENCE ===
-      // Step 1: Reaction (if exists) - "I see", "Alright"
-      const speakReaction = async () => {
-        if (result.reactionMessage && member) {
-          await speakTextWithPromise(result.reactionMessage.text, member);
-          // Wait reaction delay (thinking time)
-          await delay(result.reactionDelay || 400);
+      // === IMMERSIVE PACING WITH ALL PANELISTS ===
+      // Speak all messages sequentially with natural pacing
+      for (let i = 0; i < result.messages.length; i++) {
+        const message = result.messages[i];
+        const member = updatedSession.panel.find(m => m.id === message.panelMemberId);
+        
+        if (member) {
+          // Different pacing based on message type
+          if (message.isSideRemark || message.isNonVerbal) {
+            // Brief remarks - quick
+            await speakTextWithPromise(message.text, member);
+            await delay(200);
+          } else if (message.isPanelInteraction) {
+            // Panel interactions - natural pause
+            await delay(400);
+            await speakTextWithPromise(message.text, member);
+            await delay(300);
+          } else {
+            // Main questions/responses - thinking time
+            await delay(600 + Math.random() * 600); // 600-1200ms thinking time
+            await speakTextWithPromise(message.text, member);
+            
+            // Longer pause after questions
+            if (message.isQuestion) {
+              await delay(500);
+            }
+          }
         }
-      };
-      
-      // Step 2: Panel Interaction (if exists) - panelist reacting to another
-      const speakPanelInteraction = async () => {
-        if (result.panelInteractionMessage && member) {
-          await speakTextWithPromise(result.panelInteractionMessage.text, member);
-          await delay(300);
-        }
-      };
-      
-      // Step 3: Main Response/Question with thinking delay
-      const speakMainResponse = async () => {
-        // Thinking delay before main response
-        await delay(result.thinkingDelay || 800);
-        await speakTextWithPromise(result.responseMessage.text, member);
-      };
-      
-      // Execute sequence
-      await speakReaction();
-      await speakPanelInteraction();
-      await speakMainResponse();
+      }
       
       setIsLoading(false);
-      // Delay slightly then start listening to avoid state conflicts
+      
+      // Restart listening after all panelists have spoken
       setTimeout(() => {
         if (recognitionRef.current) {
           try { recognitionRef.current.stop(); } catch (e) {}
           recognitionRef.current = null;
         }
-        // Call startListening directly from ref to avoid circular dependency
         startListeningRef.current();
-      }, 100);
+      }, 200);
       
     } catch (err) {
       console.error('Error processing response:', err);
@@ -619,11 +630,7 @@ export default function SaphiraInterviewPage() {
                   key={useCase.id}
                   onClick={() => {
                     setSelectedUseCase(useCase.id);
-                    if (useCase.id === 'job_interview') {
-                      setStep('company');
-                    } else {
-                      setStep('configure');
-                    }
+                    setStep('configure');
                   }}
                   className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-left"
                 >
@@ -645,30 +652,6 @@ export default function SaphiraInterviewPage() {
               );
             })}
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Render company selection for job interviews
-  if (step === 'company') {
-    return (
-      <div className="min-h-screen bg-linen p-4 sm:p-8">
-        <div className="max-w-4xl mx-auto">
-          <button 
-            onClick={() => selectedUseCase === 'job_interview' ? setStep('company') : setStep('use-case')}
-            className="flex items-center gap-2 text-gray-500 mb-6 hover:text-gray-700"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            {selectedUseCase === 'job_interview' ? 'Back to company selection' : 'Back to use cases'}
-          </button>
-          
-          <CompanySelector
-            country={country}
-            selectedCompany={company || 'general'}
-            onSelect={setCompany}
-            onStart={() => setStep('configure')}
-          />
         </div>
       </div>
     );
@@ -754,32 +737,6 @@ export default function SaphiraInterviewPage() {
                 </p>
               </div>
 
-              {selectedUseCase === 'job_interview' && (
-                <div className="p-4 bg-wood/5 rounded-xl border border-wood/20">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Selected Company</label>
-                      <p className="text-lg font-semibold text-wood">
-                        {company && company !== 'general' 
-                          ? company.replace(/_/g, ' ') 
-                          : 'General Practice (All Companies)'}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setStep('company')}
-                      className="text-sm text-wood hover:underline"
-                    >
-                      Change
-                    </button>
-                  </div>
-                  {company && company !== 'general' && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      You'll be asked real interview questions from this company
-                    </p>
-                  )}
-                </div>
-              )}
-              
               <div className="pt-4">
                 <h3 className="font-medium text-charcoal mb-3">Your Panel ({defaultPanel.length} members)</h3>
                 <div className="space-y-2">

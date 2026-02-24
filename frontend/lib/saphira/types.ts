@@ -135,6 +135,8 @@ export interface SaphiraMessage {
   // Enhanced interaction fields
   isReaction?: boolean; // Micro-reaction ("I see", "Alright")
   isPanelInteraction?: boolean; // Panelist reacting to another panelist
+  isSideRemark?: boolean; // Brief side comment to other panelists
+  isNonVerbal?: boolean; // Non-verbal cues: [nods], [makes note]
   isOpeningPhase?: boolean; // Part of opening comfort phase
   reactionTarget?: 'candidate' | 'panelist' | null; // Who is being reacted to
 }
