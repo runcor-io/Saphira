@@ -73,7 +73,7 @@ const VoiceOrb = ({ isListening, isAiSpeaking, color = '#8b5cf6' }: {
 
     const animate = () => {
       time += 0.05;
-      ctx.clearRect(0, 0, canvas.width / 2, canvas.height / 2);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       const centerX = canvas.offsetWidth / 2;
       const centerY = canvas.offsetHeight / 2;
 
@@ -239,11 +239,10 @@ export default function SaphiraInterviewPage() {
       }
     } catch (err) {
       console.error('ElevenLabs error:', err);
-      setIsAiSpeaking(false);
-      setSpeakingMemberId(null);
-      onEnd?.();
+      // Fallback to browser voice on error
+      speakWithBrowserVoice(text, onEnd);
     }
-  }, [isMuted]);
+  }, [isMuted, speakWithBrowserVoice]);
 
   // Speak text with appropriate voice
   const speakText = useCallback((text: string, member?: PanelMember, onEnd?: () => void) => {
