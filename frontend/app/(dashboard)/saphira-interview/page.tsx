@@ -1,39 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Mic, 
-  MicOff, 
-  Send, 
-  Settings, 
-  Play, 
-  Square, 
-  Volume2, 
-  VolumeX,
-  ChevronRight,
-  Briefcase,
-  GraduationCap,
-  Users,
-  Building2,
-  MapPin,
-  ArrowLeft,
-  Loader2,
-  CheckCircle,
-  BarChart3,
-  Lightbulb,
-  AlertCircle,
-  Plus,
-  Trash2,
-  MessageSquare
+  Mic, PhoneOff, MessageSquare, ChevronLeft, Users, Crown, TrendingUp, 
+  UserCircle, Zap, Settings, BarChart3, Home, Briefcase, Plane, GraduationCap,
+  BookOpen, Radio, Play, Plus, Trash2, User, ArrowLeft, Volume2, VolumeX
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import {
   createSession,
@@ -43,7 +16,6 @@ import {
   type SaphiraSession,
   type SaphiraMessage,
   type SessionSummary,
-  type QuestionFeedback,
   type PanelMember,
   type Country,
   type UseCase,
@@ -52,42 +24,93 @@ import { getAllUseCases, getUseCaseConfig } from '@/lib/saphira';
 import { determinePhase, determineSector } from '@/lib/saphira/immersiveEngine';
 import { generateImmersiveResponse } from '@/lib/saphira/immersiveEngine';
 
-// Animation component for voice visualization
-const VoiceOrb = ({ isListening, isAiSpeaking, color = '#8b5cf6' }: { 
-  isListening: boolean; 
-  isAiSpeaking: boolean;
-  color?: string;
-}) => {
+// Interview types for selection
+const interviewTypes = [
+  { id: 'job_interview', icon: Briefcase, title: 'Job Interview', desc: 'Practice job interviews with HR, technical, and leadership questions' },
+  { id: 'embassy_interview', icon: Plane, title: 'Embassy/Visa Interview', desc: 'Practice visa interviews for study, work, or travel abroad' },
+  { id: 'scholarship_interview', icon: GraduationCap, title: 'Scholarship Interview', desc: 'Practice academic scholarship and PhD admission interviews' },
+  { id: 'business_pitch', icon: TrendingUp, title: 'Business Pitch', desc: 'Practice pitching to investors and securing funding' },
+  { id: 'academic_presentation', icon: BookOpen, title: 'Academic Presentation', desc: 'Practice thesis defense and academic presentations' },
+  { id: 'board_presentation', icon: Users, title: 'Board Presentation', desc: 'Practice executive presentations to senior leadership' },
+  { id: 'conference', icon: Mic, title: 'Conference Presentation', desc: 'Practice presenting at professional conferences' },
+  { id: 'media', icon: Radio, title: 'Media Interview', desc: 'Practice handling press and media questions' },
+];
+
+const roleOptions = ['CEO', 'CFO', 'CTO', 'HR Director', 'COO', 'VP Engineering', 'Product Manager', 'Team Lead', 'Other'];
+
+// Default persona colors
+const personaColors = [
+  { color: '#8B5A2B', secondaryColor: '#D2B48C', icon: Crown },
+  { color: '#2E7D32', secondaryColor: '#81C784', icon: TrendingUp },
+  { color: '#1565C0', secondaryColor: '#64B5F6', icon: UserCircle },
+  { color: '#6A1B9A', secondaryColor: '#BA68C8', icon: Zap },
+];
+
+interface CustomPanelist {
+  id: string;
+  name: string;
+  gender: 'male' | 'female';
+  demeanor: number;
+  tone: number;
+  attitude: number;
+  role: string;
+}
+
+interface Persona {
+  id: string;
+  name: string;
+  role: string;
+  shortRole: string;
+  color: string;
+  secondaryColor: string;
+  icon: React.ElementType;
+  speaking: boolean;
+}
+
+// Waveform animation component
+function PersonaWaveform({ isActive, color, secondaryColor }: { isActive: boolean; color: string; secondaryColor: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | null>(null);
+  const timeRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let time = 0;
-    const isActive = isListening || isAiSpeaking;
+    const resize = () => {
+      canvas.width = canvas.offsetWidth * 2;
+      canvas.height = canvas.offsetHeight * 2;
+      ctx.scale(2, 2);
+    };
+    resize();
+    window.addEventListener('resize', resize);
 
     const animate = () => {
-      time += 0.05;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      timeRef.current += isActive ? 0.05 : 0.02;
+      const time = timeRef.current;
+      ctx.clearRect(0, 0, canvas.width / 2, canvas.height / 2);
       const centerX = canvas.offsetWidth / 2;
       const centerY = canvas.offsetHeight / 2;
 
-      for (let ring = 0; ring < 4; ring++) {
+      for (let ring = 0; ring < 5; ring++) {
+        const ringOffset = ring * 0.6;
         const points: { x: number; y: number }[] = [];
         for (let i = 0; i <= 360; i += 5) {
           const angle = (i * Math.PI) / 180;
-          const wave = Math.sin(angle * 4 + time + ring * 0.5) * (isActive ? 15 : 3);
-          const radius = 50 + ring * 20 + wave;
+          const intensity = isActive ? 1.5 : 0.5;
+          const wave1 = Math.sin(angle * 3 + time + ringOffset) * (15 * intensity);
+          const wave2 = Math.sin(angle * 5 + time * 1.3 + ringOffset) * (10 * intensity);
+          const wave3 = Math.cos(angle * 2 + time * 0.8 + ringOffset) * (8 * intensity);
+          const baseRadius = 45 + ring * 18;
+          const radius = baseRadius + wave1 + wave2 + wave3;
           points.push({
             x: centerX + Math.cos(angle) * radius,
-            y: centerY + Math.sin(angle) * radius
+            y: centerY + Math.sin(angle) * radius,
           });
         }
+
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
@@ -96,62 +119,93 @@ const VoiceOrb = ({ isListening, isAiSpeaking, color = '#8b5cf6' }: {
           ctx.quadraticCurveTo(points[i - 1].x, points[i - 1].y, xc, yc);
         }
         ctx.closePath();
-        ctx.strokeStyle = color;
+
+        const gradient = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, 120);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(0.5, secondaryColor);
+        gradient.addColorStop(1, color + '60');
+
+        ctx.strokeStyle = gradient;
         ctx.lineWidth = 2;
-        ctx.globalAlpha = isActive ? 0.7 : 0.15;
+        ctx.globalAlpha = isActive ? 0.8 + Math.sin(time * 2 + ring) * 0.2 : 0.2;
         ctx.stroke();
+        ctx.fillStyle = gradient;
+        ctx.globalAlpha = isActive ? 0.1 + Math.sin(time * 3 + ring) * 0.05 : 0.03;
+        ctx.fill();
       }
+
+      if (isActive) {
+        const glowGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 80);
+        glowGradient.addColorStop(0, color + '66');
+        glowGradient.addColorStop(0.5, secondaryColor + '33');
+        glowGradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = glowGradient;
+        ctx.globalAlpha = 0.7 + Math.sin(time * 5) * 0.2;
+        ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+      }
+
       animationRef.current = requestAnimationFrame(animate);
     };
 
     animate();
-
     return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      window.removeEventListener('resize', resize);
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isListening, isAiSpeaking, color]);
+  }, [isActive, color, secondaryColor]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={300}
-      height={300}
-      className="w-48 h-48"
-      style={{ imageRendering: 'crisp-edges' }}
+      className="w-full h-full"
+      style={{ filter: isActive ? `drop-shadow(0 0 30px ${color}99)` : 'none', transition: 'filter 0.3s ease' }}
     />
   );
-};
+}
+
+// Speaking sound bars
+function SpeakingBars({ isSpeaking, color }: { isSpeaking: boolean; color: string }) {
+  if (!isSpeaking) return null;
+  return (
+    <div className="flex items-end gap-1 h-6">
+      {[...Array(4)].map((_, i) => (
+        <div
+          key={i}
+          className="w-1 rounded-full"
+          style={{
+            backgroundColor: color,
+            height: '100%',
+            animation: `soundBar 0.4s ease-in-out ${i * 0.08}s infinite alternate`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function SaphiraInterviewPage() {
   const router = useRouter();
-  
-  // Session states
   const [step, setStep] = useState<'setup' | 'interview' | 'summary'>('setup');
-  const [selectedUseCase, setSelectedUseCase] = useState<UseCase>('job_interview');
+  
+  // Setup states
+  const [selectedType, setSelectedType] = useState<UseCase>('job_interview');
+  const [panelMode, setPanelMode] = useState<'default' | 'custom'>('default');
+  const [customPanelists, setCustomPanelists] = useState<CustomPanelist[]>([]);
   const [topic, setTopic] = useState('');
   const [company, setCompany] = useState('');
   const [country, setCountry] = useState<Country>('nigeria');
-  const [customPanel, setCustomPanel] = useState<PanelMember[]>([]);
-  const [newPanelistName, setNewPanelistName] = useState('');
-  const [newPanelistRole, setNewPanelistRole] = useState('');
   
   // Interview states
   const [session, setSession] = useState<SaphiraSession | null>(null);
   const [messages, setMessages] = useState<SaphiraMessage[]>([]);
-  const [currentFeedback, setCurrentFeedback] = useState<QuestionFeedback | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [summary, setSummary] = useState<SessionSummary | null>(null);
-  
-  // UI states
+  const [personas, setPersonas] = useState<Persona[]>([]);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
-  const [speakingMemberId, setSpeakingMemberId] = useState<string | null>(null);
   const [liveTranscript, setLiveTranscript] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [currentInput, setCurrentInput] = useState('');
+  const [summary, setSummary] = useState<SessionSummary | null>(null);
   
   // Refs
   const recognitionRef = useRef<any>(null);
@@ -159,113 +213,123 @@ export default function SaphiraInterviewPage() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const lastProcessedMessageRef = useRef<string>('');
   const sessionRef = useRef<SaphiraSession | null>(null);
-  
-  // Speech recognition state guards
   const isManuallyStoppedRef = useRef(false);
   const submittedTextRef = useRef<string | null>(null);
   const lastRestartTimeRef = useRef<number>(0);
   const isStartingRef = useRef(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Keep session ref in sync
   useEffect(() => {
     sessionRef.current = session;
   }, [session]);
 
-  const useCases = getAllUseCases();
-  const config = selectedUseCase ? getUseCaseConfig(selectedUseCase) : null;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  // Browser TTS fallback
+  // Auto-scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const addCustomPanelist = () => {
+    const newPanelist: CustomPanelist = {
+      id: Date.now().toString(),
+      name: '',
+      gender: 'male',
+      demeanor: 50,
+      tone: 50,
+      attitude: 50,
+      role: 'CEO',
+    };
+    setCustomPanelists([...customPanelists, newPanelist]);
+  };
+
+  const updatePanelist = (id: string, field: keyof CustomPanelist, value: string | number) => {
+    setCustomPanelists(customPanelists.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const removePanelist = (id: string) => {
+    setCustomPanelists(customPanelists.filter(p => p.id !== id));
+  };
+
+  const selectedTypeData = interviewTypes.find(t => t.id === selectedType);
+
+  // Convert session panel to personas
+  useEffect(() => {
+    if (session?.panel) {
+      const newPersonas = session.panel.map((member, index) => {
+        const colors = personaColors[index % personaColors.length];
+        return {
+          id: member.id,
+          name: member.name,
+          role: member.role,
+          shortRole: member.role.split(' ')[0],
+          color: colors.color,
+          secondaryColor: colors.secondaryColor,
+          icon: colors.icon,
+          speaking: false,
+        };
+      });
+      setPersonas(newPersonas);
+      if (newPersonas.length > 0) setSelectedPersona(newPersonas[0]);
+    }
+  }, [session?.panel]);
+
+  // Browser TTS
   const speakWithBrowserVoice = useCallback((text: string, onEnd?: () => void) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 0.95;
     utterance.pitch = 1;
-    
     const voices = window.speechSynthesis.getVoices();
     const voice = voices.find(v => v.lang === 'en-US') || voices[0];
     if (voice) utterance.voice = voice;
-    
-    utterance.onstart = () => setIsAiSpeaking(true);
-    utterance.onend = () => {
-      setIsAiSpeaking(false);
-      setSpeakingMemberId(null);
-      onEnd?.();
-    };
-    utterance.onerror = () => {
-      setIsAiSpeaking(false);
-      setSpeakingMemberId(null);
-      onEnd?.();
-    };
-    
+    utterance.onend = () => onEnd?.();
+    utterance.onerror = () => onEnd?.();
     window.speechSynthesis.speak(utterance);
   }, []);
 
-  // ElevenLabs voice synthesis
-  const speakWithElevenLabs = useCallback(async (text: string, voiceId: string, memberId: string, onEnd?: () => void) => {
-    if (isMuted) {
-      onEnd?.();
-      return;
-    }
-
+  // ElevenLabs TTS
+  const speakWithElevenLabs = useCallback(async (text: string, voiceId: string, onEnd?: () => void) => {
+    if (isMuted) { onEnd?.(); return; }
     try {
-      setIsAiSpeaking(true);
-      setSpeakingMemberId(memberId);
-
       const response = await fetch('/api/voice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, voiceId }),
       });
-
       if (!response.ok) throw new Error('Voice synthesis failed');
-
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
-
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
-        audioRef.current.onended = () => {
-          setIsAiSpeaking(false);
-          setSpeakingMemberId(null);
-          URL.revokeObjectURL(audioUrl);
-          onEnd?.();
-        };
-        audioRef.current.onerror = () => {
-          setIsAiSpeaking(false);
-          setSpeakingMemberId(null);
-          URL.revokeObjectURL(audioUrl);
-          onEnd?.();
-        };
+        audioRef.current.onended = () => { URL.revokeObjectURL(audioUrl); onEnd?.(); };
+        audioRef.current.onerror = () => { URL.revokeObjectURL(audioUrl); onEnd?.(); };
         await audioRef.current.play();
       }
-    } catch (err) {
-      console.error('ElevenLabs error:', err);
-      // Fallback to browser voice on error
+    } catch {
       speakWithBrowserVoice(text, onEnd);
     }
   }, [isMuted, speakWithBrowserVoice]);
 
-  // Speak text with appropriate voice
-  const speakText = useCallback((text: string, member?: PanelMember, onEnd?: () => void) => {
-    if (isMuted) {
-      onEnd?.();
-      return;
-    }
-
+  // Speak text
+  const speakText = useCallback(async (text: string, member?: PanelMember, onEnd?: () => void) => {
+    if (isMuted) { onEnd?.(); return; }
     if (member?.voiceId) {
-      speakWithElevenLabs(text, member.voiceId, member.id, onEnd);
+      await speakWithElevenLabs(text, member.voiceId, onEnd);
     } else {
       speakWithBrowserVoice(text, onEnd);
     }
   }, [isMuted, speakWithBrowserVoice, speakWithElevenLabs]);
 
-  // Handle candidate response with IMMERSIVE panel dynamics
+  const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Handle AI response
   const handleCandidateResponse = useCallback(async (text: string) => {
     if (!sessionRef.current) return;
     const currentSession = sessionRef.current;
-    
     setIsLoading(true);
-    
-    // Add user message
+
     const userMessage: SaphiraMessage = {
       id: `user_${Date.now()}`,
       sender: 'candidate',
@@ -273,21 +337,18 @@ export default function SaphiraInterviewPage() {
       timestamp: new Date(),
       isQuestion: false,
     };
-    
+
     const sessionWithUserMessage = {
       ...currentSession,
       messages: [...currentSession.messages, userMessage],
     };
-    
     setSession(sessionWithUserMessage);
     setMessages(sessionWithUserMessage.messages);
-    
+
     try {
-      // Determine conversation context
       const phase = determinePhase(sessionWithUserMessage);
-      const sector = determineSector(sessionWithUserMessage.topic, sessionWithUserMessage.company);
+      const sector = determineSector(sessionWithUserMessage.topic || 'general', sessionWithUserMessage.company);
       
-      // Use immersive engine for realistic panel dynamics
       const result = await generateImmersiveResponse(
         sessionWithUserMessage,
         text,
@@ -299,344 +360,188 @@ export default function SaphiraInterviewPage() {
           currentPhase: phase,
         }
       );
-      
-      // Update session with all messages from the panel
+
       const updatedSession = {
         ...sessionWithUserMessage,
         messages: [...sessionWithUserMessage.messages, ...result.messages],
         questionCount: sessionWithUserMessage.questionCount + result.messages.filter(m => m.isQuestion).length,
       };
-      
       setSession(updatedSession);
       setMessages(updatedSession.messages);
-      
+
       if (result.isComplete) {
-        const summary = generateSessionSummary(updatedSession);
-        setSummary(summary);
+        const finalSummary = generateSessionSummary(updatedSession);
+        setSummary(finalSummary);
         setStep('summary');
         setIsLoading(false);
         return;
       }
-      
-      // === IMMERSIVE PACING WITH ALL PANELISTS ===
-      // Speak all messages sequentially with natural pacing
-      for (let i = 0; i < result.messages.length; i++) {
-        const message = result.messages[i];
+
+      // Speak messages sequentially
+      for (const message of result.messages) {
         const member = updatedSession.panel.find(m => m.id === message.panelMemberId);
+        const persona = personas.find(p => p.id === message.panelMemberId);
         
-        if (member) {
-          // Different pacing based on message type
-          if (message.isSideRemark || message.isNonVerbal) {
-            // Brief remarks - quick
-            await speakTextWithPromise(message.text, member);
-            await delay(200);
-          } else if (message.isPanelInteraction) {
-            // Panel interactions - natural pause
-            await delay(400);
-            await speakTextWithPromise(message.text, member);
-            await delay(300);
-          } else {
-            // Main questions/responses - thinking time
-            await delay(600 + Math.random() * 600); // 600-1200ms thinking time
-            await speakTextWithPromise(message.text, member);
-            
-            // Longer pause after questions
-            if (message.isQuestion) {
-              await delay(500);
-            }
-          }
+        if (persona && member) {
+          setPersonas(prev => prev.map(p => ({ ...p, speaking: p.id === persona.id })));
+          await delay(message.isSideRemark ? 200 : message.isPanelInteraction ? 400 : 600);
+          await new Promise<void>(resolve => speakText(message.text, member, resolve));
+          setPersonas(prev => prev.map(p => ({ ...p, speaking: false })));
+          await delay(message.isQuestion ? 500 : 300);
         }
       }
-      
+
       setIsLoading(false);
-      
-      // Restart listening after all panelists have spoken
-      // Ensure clean state before restarting
-      setTimeout(() => {
-        isManuallyStoppedRef.current = false; // Reset for auto-restart
-        if (recognitionRef.current) {
-          try { recognitionRef.current.stop(); } catch (e) {}
-          recognitionRef.current = null;
-        }
-        // Small delay to ensure previous recognition fully ended
-        setTimeout(() => {
-          startListeningRef.current();
-        }, 100);
-      }, 200);
-      
+      setTimeout(() => startListening(), 200);
     } catch (err) {
-      console.error('Error processing response:', err);
-      setError('Failed to process your response. Please try again.');
+      console.error('Error:', err);
       setIsLoading(false);
     }
-  }, []);
-  
-  // Ref to expose startListening to handleCandidateResponse
-  const startListeningRef = useRef<() => void>(() => {});
-  
-  // Start listening - FIXED VERSION with safeguards
+  }, [personas, speakText]);
+
+  // Speech recognition
   const startListening = useCallback(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      setError('Speech recognition not supported. Please use Chrome or Edge.');
-      return;
-    }
+    if (!('webkitSpeechRecognition' in window)) return;
+    if (isStartingRef.current) return;
     
-    // Prevent concurrent starts
-    if (isStartingRef.current) {
-      console.log('[Speech] Already starting, ignoring duplicate call');
-      return;
-    }
-    
-    // Debounce rapid restarts (minimum 100ms between restarts)
     const now = Date.now();
-    if (now - lastRestartTimeRef.current < 100) {
-      console.log('[Speech] Restart too rapid, debouncing...');
-      return;
-    }
+    if (now - lastRestartTimeRef.current < 100) return;
     lastRestartTimeRef.current = now;
     isStartingRef.current = true;
-    
-    // Stop any existing recognition and clean up
+
     if (recognitionRef.current) {
-      try { 
-        recognitionRef.current.onend = null; // Remove handler to prevent auto-restart
-        recognitionRef.current.onresult = null;
-        recognitionRef.current.onerror = null;
-        recognitionRef.current.stop(); 
-      } catch (e) {}
+      try { recognitionRef.current.stop(); } catch {}
       recognitionRef.current = null;
     }
-    
-    // Small delay to ensure clean state
+
     setTimeout(() => {
       try {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognitionRef.current = recognition;
-        
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = 'en-US';
         
-        // CRITICAL: Reset ALL state
         isManuallyStoppedRef.current = false;
         submittedTextRef.current = null;
         finalTranscriptRef.current = '';
         setLiveTranscript('');
         
-        recognition.onstart = () => {
-          console.log('[Speech] Recognition started');
-          setIsListening(true);
-        };
+        recognition.onstart = () => setIsListening(true);
         
         recognition.onresult = (event: any) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
-          
+          let interim = '';
+          let final = '';
           for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              finalTranscript += transcript;
-            } else {
-              interimTranscript += transcript;
-            }
+            const t = event.results[i][0].transcript;
+            if (event.results[i].isFinal) final += t;
+            else interim += t;
           }
-          
-          // Accumulate final results
-          if (finalTranscript) {
-            finalTranscriptRef.current += finalTranscript;
-            console.log('[Speech] Final chunk:', finalTranscript);
-          }
-          
-          // Show combined final + interim
-          const displayText = finalTranscriptRef.current + interimTranscript;
-          setLiveTranscript(displayText);
-          console.log('[Speech] Display:', displayText);
+          if (final) finalTranscriptRef.current += final;
+          setLiveTranscript(finalTranscriptRef.current + interim);
         };
         
-        recognition.onerror = (event: any) => {
-          console.error('[Speech] Error:', event.error);
-          
-          if (event.error === 'not-allowed') {
-            setError('Microphone access denied. Please allow microphone access in your browser settings.');
-            setIsListening(false);
-          } else if (event.error === 'no-speech') {
-            // No speech detected - don't auto-restart to avoid loops
-            // Just log it - onend will fire and handle restart if needed
-            console.log('[Speech] No speech detected, waiting for onend...');
-          } else if (event.error === 'audio-capture') {
-            setError('No microphone found. Please check your microphone connection.');
-            setIsListening(false);
-          } else if (event.error === 'network') {
-            setError('Network error. Please check your internet connection.');
-            setIsListening(false);
-          } else if (event.error === 'aborted') {
-            // User stopped it, no action needed
-            console.log('[Speech] Aborted by user');
-          } else {
-            // Other errors - keep listening if possible
-            console.log('[Speech] Other error:', event.error);
-          }
-        };
+        recognition.onerror = () => {};
         
         recognition.onend = () => {
-          console.log('[Speech] Recognition ended. Manually stopped:', isManuallyStoppedRef.current);
+          const textToProcess = submittedTextRef.current || finalTranscriptRef.current.trim();
+          submittedTextRef.current = null;
           
-          // If manually stopped, handle submission
           if (isManuallyStoppedRef.current) {
             setIsListening(false);
             recognitionRef.current = null;
-            
-            // Get text - either from manual submit ref or accumulated transcript
-            const textToProcess = submittedTextRef.current || finalTranscriptRef.current.trim();
-            submittedTextRef.current = null; // Clear the submitted text ref
-            
-            // Only process if text exists and hasn't been processed yet
             if (textToProcess && textToProcess !== lastProcessedMessageRef.current) {
-              console.log('[Speech] Processing from onend:', textToProcess);
               lastProcessedMessageRef.current = textToProcess;
               handleCandidateResponse(textToProcess);
-            } else {
-              console.log('[Speech] Text already processed or empty, skipping onend handler');
             }
           } else {
-            // Not manually stopped - auto-restart after silence timeout
-            // Small delay to ensure clean restart
-            console.log('[Speech] Auto-restarting after silence...');
-            setTimeout(() => {
-              if (!isManuallyStoppedRef.current) {
-                try {
-                  // Create fresh recognition instance for clean state
-                  startListeningRef.current();
-                } catch (e) {
-                  console.log('[Speech] Auto-restart failed:', e);
-                  setIsListening(false);
-                }
-              }
-            }, 150);
+            setTimeout(() => startListening(), 150);
           }
         };
         
-        // Start recognition
-        try {
-          recognition.start();
-          console.log('[Speech] Start called');
-        } catch (err) {
-          console.error('[Speech] Failed to start:', err);
-          setError('Failed to start microphone. Please try again.');
-          setIsListening(false);
-        } finally {
-          isStartingRef.current = false;
-        }
-      } catch (outerErr) {
-        console.error('[Speech] Outer error:', outerErr);
-        isStartingRef.current = false;
-      }
-    }, 50); // Small delay for clean state
-  }, []);
-  
-  // Update ref so handleCandidateResponse can call the latest version
-  startListeningRef.current = startListening;
+        recognition.start();
+      } catch {}
+      isStartingRef.current = false;
+    }, 50);
+  }, [handleCandidateResponse]);
 
-  // Stop listening (manual)
   const stopListening = useCallback(() => {
-    console.log('[Speech] Manually stopping');
     isManuallyStoppedRef.current = true;
     if (recognitionRef.current) {
-      try { 
-        recognitionRef.current.stop(); 
-        recognitionRef.current = null;
-      } catch (e) {
-        console.error('[Speech] Error stopping:', e);
-      }
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
     }
     setIsListening(false);
   }, []);
-  
-  // Helper: Speak text and return promise
-  const speakTextWithPromise = (text: string, member?: PanelMember): Promise<void> => {
-    return new Promise((resolve) => {
-      speakText(text, member, () => resolve());
-    });
-  };
-  
-  // Helper: Delay promise
-  const delay = (ms: number): Promise<void> => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  };
 
-  // Manual submit transcript
   const submitTranscript = useCallback(() => {
     const text = (finalTranscriptRef.current || liveTranscript).trim();
-    console.log('[Speech] Manual submit:', text);
-    
     if (text) {
-      // Save text to prevent race condition with onend
       submittedTextRef.current = text;
       lastProcessedMessageRef.current = text;
-      
-      // Stop listening - this will trigger onend
       isManuallyStoppedRef.current = true;
       if (recognitionRef.current) {
-        try { 
-          recognitionRef.current.stop(); 
-        } catch (e) {
-          console.error('[Speech] Error stopping:', e);
-        }
+        try { recognitionRef.current.stop(); } catch {}
       }
-      
-      // Clear the display
       finalTranscriptRef.current = '';
       setLiveTranscript('');
-      
-      // Process the response (use saved text to avoid race condition)
       handleCandidateResponse(text);
     }
   }, [liveTranscript, handleCandidateResponse]);
 
-  // Start the interview
+  // Start interview
   const startInterview = async () => {
-    if (!selectedUseCase || !topic) return;
-    
-    const newSession = createSession(selectedUseCase, {
-      topic,
+    const customPanel: PanelMember[] | undefined = panelMode === 'custom' && customPanelists.length > 0
+      ? customPanelists.map((cp, idx) => ({
+          id: `custom_${cp.id}`,
+          name: cp.name || `Panelist ${idx + 1}`,
+          role: cp.role,
+          personality: (cp.demeanor < 30 ? 'direct' : cp.demeanor > 70 ? 'supportive' : 'analytical') as PanelMember['personality'],
+          voiceId: cp.gender === 'male' ? 'U7wWSnxIJwCjioxt86mk' : 'Y4Xi1YBz9HedbrvzwylK',
+          focus: 'general',
+          gender: cp.gender,
+        }))
+      : undefined;
+
+    const newSession = createSession(selectedType, {
+      topic: topic || undefined,
       company: company || undefined,
-      customPanel: customPanel.length > 0 ? customPanel : undefined,
+      customPanel,
       country,
     });
-    
+
     setSession(newSession);
-    
     const { messages: introMessages, updatedSession } = await startSession(newSession);
     setSession(updatedSession);
-    setMessages(introMessages);
+    setMessages(updatedSession.messages);
     setStep('interview');
-    
-    // Speak all introductions sequentially
-    let currentMessageIndex = 0;
-    
-    const speakNextMessage = () => {
-      if (currentMessageIndex >= introMessages.length) {
+
+    // Speak introductions
+    let msgIndex = 0;
+    const speakNext = () => {
+      if (msgIndex >= introMessages.length) {
         startListening();
         return;
       }
-      
-      const message = introMessages[currentMessageIndex];
-      const member = updatedSession.panel.find(m => m.id === message.panelMemberId);
-      
-      currentMessageIndex++;
-      
-      if (member && message.text) {
-        speakText(message.text, member, speakNextMessage);
+      const msg = introMessages[msgIndex];
+      const member = updatedSession.panel.find(m => m.id === msg.panelMemberId);
+      const persona = newSession.panel.find(p => p.id === msg.panelMemberId);
+      if (member && persona) {
+        setPersonas(prev => prev.map(p => ({ ...p, speaking: p.id === persona.id })));
+        speakText(msg.text, member, () => {
+          setPersonas(prev => prev.map(p => ({ ...p, speaking: false })));
+          msgIndex++;
+          speakNext();
+        });
       } else {
-        speakNextMessage();
+        msgIndex++;
+        speakNext();
       }
     };
-    
-    speakNextMessage();
+    speakNext();
   };
 
-  // End interview
   const endInterview = () => {
     if (session) {
       const finalSummary = generateSessionSummary(session);
@@ -646,665 +551,525 @@ export default function SaphiraInterviewPage() {
     stopListening();
   };
 
-  // Add custom panelist
-  const addPanelist = () => {
-    if (newPanelistName && newPanelistRole) {
-      const newMember: PanelMember = {
-        id: `custom_${Date.now()}`,
-        name: newPanelistName,
-        role: newPanelistRole,
-        personality: 'supportive',
-        voiceId: undefined,
-      };
-      setCustomPanel([...customPanel, newMember]);
-      setNewPanelistName('');
-      setNewPanelistRole('');
-    }
+  const handleSend = () => {
+    if (!currentInput.trim()) return;
+    handleCandidateResponse(currentInput);
+    setCurrentInput('');
   };
 
-  // Remove custom panelist
-  const removePanelist = (id: string) => {
-    setCustomPanel(customPanel.filter(p => p.id !== id));
-  };
+  // Get persona by ID helper
+  const getPersonaById = (id: string) => personas.find(p => p.id === id);
 
-  // Get country flag emoji
-  const getCountryFlag = (c: Country) => {
-    const flags: Record<Country, string> = {
-      nigeria: '🇳🇬',
-      kenya: '🇰🇪',
-      south_africa: '🇿🇦',
-    };
-    return flags[c];
-  };
-
-  // Render setup step
+  // Render SETUP step
   if (step === 'setup') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-violet-950/20 to-slate-950">
-        {/* Header */}
-        <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="min-h-screen bg-[#0a0a0f] flex overflow-hidden">
+        {/* Aurora Background */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 opacity-40" style={{
+            background: `radial-gradient(ellipse at 20% 20%, rgba(139, 90, 43, 0.15) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(106, 27, 154, 0.1) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 50%, rgba(21, 101, 192, 0.08) 0%, transparent 60%)`
+          }} />
+          <div className="absolute w-[600px] h-[600px] rounded-full blur-[120px] opacity-20" style={{
+            background: 'linear-gradient(135deg, #8B5A2B 0%, #D2B48C 100%)', top: '10%', left: '10%', animation: 'float 20s ease-in-out infinite',
+          }} />
+          <div className="absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-15" style={{
+            background: 'linear-gradient(135deg, #6A1B9A 0%, #BA68C8 100%)', bottom: '10%', right: '10%', animation: 'float 25s ease-in-out infinite reverse',
+          }} />
+        </div>
+
+        {/* Left Sidebar */}
+        <aside className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 flex flex-col relative z-10">
+          <div className="p-6 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] rounded-xl flex items-center justify-center">
+                <Mic className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-                Saphira
-              </span>
+              <span className="text-xl font-bold text-white">Saphire</span>
             </div>
+          </div>
+          <nav className="flex-1 p-4 space-y-1">
+            {[{ icon: Home, label: 'Dashboard', active: false }, { icon: Mic, label: 'Interview', active: true }, { icon: Users, label: 'Presentation', active: false }, { icon: BarChart3, label: 'Feedback', active: false }, { icon: Settings, label: 'Settings', active: false }].map((item) => (
+              <button key={item.label} onClick={() => item.label === 'Dashboard' ? router.push('/dashboard') : null}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${item.active ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+                <item.icon className="w-5 h-5" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col relative z-10 overflow-hidden">
+          <header className="h-16 border-b border-white/10 flex items-center justify-between px-6">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => router.push('/dashboard')}
-                className="text-white/60 hover:text-white"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
+              <button onClick={() => router.push('/dashboard')} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                <ChevronLeft className="w-5 h-5 text-white/60" />
+              </button>
+              <div>
+                <h1 className="text-white font-semibold">Start Your Interview Session</h1>
+                <p className="text-white/50 text-sm">Configure your practice interview settings below</p>
+              </div>
             </div>
-          </div>
-        </header>
+            <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-sm">
+              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            </button>
+          </header>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Title */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Start Your Interview Session
-            </h1>
-            <p className="text-white/60 text-lg">
-              Configure your practice interview settings below
-            </p>
-          </div>
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-6 max-w-7xl mx-auto">
+              <div className="flex gap-6">
+                {/* Left Column */}
+                <div className="flex-1 space-y-6">
+                  {/* Interview Type */}
+                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-[#8B5A2B]" /> Interview Type
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {interviewTypes.map((type) => {
+                        const Icon = type.icon;
+                        const isSelected = selectedType === type.id;
+                        return (
+                          <button key={type.id} onClick={() => setSelectedType(type.id as UseCase)}
+                            className={`p-4 rounded-xl text-left transition-all ${isSelected ? 'bg-[#8B5A2B]/30 border border-[#8B5A2B]/50' : 'bg-white/5 border border-white/10 hover:bg-white/10'}`}>
+                            <Icon className={`w-6 h-6 mb-2 ${isSelected ? 'text-[#8B5A2B]' : 'text-white/60'}`} />
+                            <p className={`font-medium text-sm ${isSelected ? 'text-white' : 'text-white/80'}`}>{type.title}</p>
+                            <p className="text-white/40 text-xs mt-1 line-clamp-2">{type.desc}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Configuration */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Use Case Selection */}
-              <Card className="bg-white/5 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-violet-400" />
-                    Interview Type
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {useCases.map((useCase) => (
-                      <button
-                        key={useCase.id}
-                        onClick={() => setSelectedUseCase(useCase.id)}
-                        className={cn(
-                          "p-4 rounded-xl border text-left transition-all duration-200",
-                          selectedUseCase === useCase.id
-                            ? "border-violet-500 bg-violet-500/20"
-                            : "border-white/10 bg-white/5 hover:border-white/20"
-                        )}
-                      >
-                        <div className="text-2xl mb-2">{useCase.icon}</div>
-                        <div className="font-medium text-white text-sm">{useCase.displayName}</div>
-                        <div className="text-xs text-white/50 mt-1">{useCase.description}</div>
+                  {/* Session Details */}
+                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-[#8B5A2B]" /> Session Details
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-white/60 text-sm mb-2 block">Topic</label>
+                        <input type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Enter topic..."
+                          className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                      </div>
+                      <div>
+                        <label className="text-white/60 text-sm mb-2 block">Company/Institution (Optional)</label>
+                        <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g., Access Bank, Shell..."
+                          className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                      </div>
+                      <div>
+                        <label className="text-white/60 text-sm mb-2 block">Country Context</label>
+                        <select value={country} onChange={(e) => setCountry(e.target.value as Country)}
+                          className="w-full px-4 py-3 bg-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50 appearance-none cursor-pointer">
+                          <option value="nigeria" className="bg-[#1a1a1f]">🇳🇬 Nigeria</option>
+                          <option value="kenya" className="bg-[#1a1a1f]">🇰🇪 Kenya</option>
+                          <option value="south_africa" className="bg-[#1a1a1f]">🇿🇦 South Africa</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Panel Setup */}
+                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#8B5A2B]" /> Panel Setup
+                    </h3>
+                    <div className="flex gap-3 mb-6">
+                      <button onClick={() => setPanelMode('default')}
+                        className={`flex-1 p-4 rounded-xl border transition-all ${panelMode === 'default' ? 'bg-[#8B5A2B]/20 border-[#8B5A2B]/50' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${panelMode === 'default' ? 'border-[#8B5A2B]' : 'border-white/30'}`}>
+                            {panelMode === 'default' && <div className="w-2.5 h-2.5 rounded-full bg-[#8B5A2B]" />}
+                          </div>
+                          <span className="text-white font-medium">Use Default Panel</span>
+                        </div>
+                        <p className="text-white/50 text-sm pl-8">Uses preset panelists</p>
                       </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Topic & Details */}
-              <Card className="bg-white/5 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-violet-400" />
-                    Session Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label className="text-white/80">
-                      Topic
-                    </Label>
-                    <Input
-                      value={topic}
-                      onChange={(e) => setTopic(e.target.value)}
-                      placeholder="Enter topic..."
-                      className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                    />
-                  </div>
-
-                  <div>
-                    <Label className="text-white/80">
-                      Company/Institution (Optional)
-                    </Label>
-                    <div className="relative mt-2">
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                      <Input
-                        value={company}
-                        onChange={(e) => setCompany(e.target.value)}
-                        placeholder="e.g., Access Bank, Andela, Safaricom..."
-                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label className="text-white/80 flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      Country Context
-                    </Label>
-                    <Select value={country} onValueChange={(v) => setCountry(v as Country)}>
-                      <SelectTrigger className="mt-2 bg-white/5 border-white/10 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-white/10">
-                        <SelectItem value="nigeria" className="text-white">
-                          🇳🇬 Nigeria
-                        </SelectItem>
-                        <SelectItem value="kenya" className="text-white">
-                          🇰🇪 Kenya
-                        </SelectItem>
-                        <SelectItem value="south_africa" className="text-white">
-                          🇿🇦 South Africa
-                        </SelectItem>
-
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Custom Panel */}
-              {true && (
-                <Card className="bg-white/5 border-white/10">
-                  <CardHeader>
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Users className="w-5 h-5 text-violet-400" />
-                      Custom Panel Members
-                    </CardTitle>
-                    <CardDescription className="text-white/50">
-                      Add specific panel members (optional)
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex gap-2">
-                      <Input
-                        value={newPanelistName}
-                        onChange={(e) => setNewPanelistName(e.target.value)}
-                        placeholder="Name"
-                        className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                      />
-                      <Input
-                        value={newPanelistRole}
-                        onChange={(e) => setNewPanelistRole(e.target.value)}
-                        placeholder="Role"
-                        className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-white/30"
-                      />
-                      <Button
-                        onClick={addPanelist}
-                        variant="outline"
-                        className="border-white/20 text-white hover:bg-white/10"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
+                      <button onClick={() => setPanelMode('custom')}
+                        className={`flex-1 p-4 rounded-xl border transition-all ${panelMode === 'custom' ? 'bg-[#8B5A2B]/20 border-[#8B5A2B]/50' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${panelMode === 'custom' ? 'border-[#8B5A2B]' : 'border-white/30'}`}>
+                            {panelMode === 'custom' && <div className="w-2.5 h-2.5 rounded-full bg-[#8B5A2B]" />}
+                          </div>
+                          <span className="text-white font-medium">Customize Your Panel</span>
+                        </div>
+                        <p className="text-white/50 text-sm pl-8">Create your own panelists</p>
+                      </button>
                     </div>
 
-                    {customPanel.length > 0 && (
-                      <div className="space-y-2">
-                        {customPanel.map((member) => (
-                          <div
-                            key={member.id}
-                            className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/10"
-                          >
-                            <div>
-                              <div className="text-white font-medium">{member.name}</div>
-                              <div className="text-white/50 text-sm">{member.role}</div>
+                    {panelMode === 'custom' && (
+                      <div className="space-y-4">
+                        {customPanelists.length === 0 && (
+                          <div className="text-center py-8 bg-white/5 rounded-xl">
+                            <Users className="w-12 h-12 text-white/20 mx-auto mb-3" />
+                            <p className="text-white/50 text-sm">No custom panelists yet</p>
+                          </div>
+                        )}
+                        {customPanelists.map((panelist, index) => (
+                          <div key={panelist.id} className="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 bg-[#8B5A2B]/30 rounded-lg flex items-center justify-center">
+                                  <User className="w-4 h-4 text-[#8B5A2B]" />
+                                </div>
+                                <span className="text-white font-medium">Panelist {index + 1}</span>
+                              </div>
+                              <button onClick={() => removePanelist(panelist.id)} className="p-2 hover:bg-red-500/20 rounded-lg transition-colors">
+                                <Trash2 className="w-4 h-4 text-red-400" />
+                              </button>
                             </div>
-                            <Button
-                              onClick={() => removePanelist(member.id)}
-                              variant="ghost"
-                              size="sm"
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <label className="text-white/50 text-xs mb-1 block">Name</label>
+                                <input type="text" value={panelist.name} onChange={(e) => updatePanelist(panelist.id, 'name', e.target.value)} placeholder="e.g., Chief Okafor"
+                                  className="w-full px-3 py-2 bg-white/10 rounded-lg text-white text-sm placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                              </div>
+                              <div>
+                                <label className="text-white/50 text-xs mb-1 block">Role</label>
+                                <select value={panelist.role} onChange={(e) => updatePanelist(panelist.id, 'role', e.target.value)}
+                                  className="w-full px-3 py-2 bg-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50 appearance-none cursor-pointer">
+                                  {roleOptions.map(role => <option key={role} value={role} className="bg-[#1a1a1f]">{role}</option>)}
+                                </select>
+                              </div>
+                            </div>
+                            <div className="mb-4">
+                              <label className="text-white/50 text-xs mb-2 block">Gender</label>
+                              <div className="flex gap-2">
+                                <button onClick={() => updatePanelist(panelist.id, 'gender', 'male')}
+                                  className={`flex-1 py-2 rounded-lg text-sm transition-all ${panelist.gender === 'male' ? 'bg-[#8B5A2B] text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>Male</button>
+                                <button onClick={() => updatePanelist(panelist.id, 'gender', 'female')}
+                                  className={`flex-1 py-2 rounded-lg text-sm transition-all ${panelist.gender === 'female' ? 'bg-[#8B5A2B] text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>Female</button>
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              {[
+                                { label: 'Demeanor', field: 'demeanor' as const, left: 'Aggressive', right: 'Soft' },
+                                { label: 'Tone', field: 'tone' as const, left: 'Serious', right: 'Calm' },
+                                { label: 'Attitude', field: 'attitude' as const, left: 'Against', right: 'Supportive' },
+                              ].map((slider) => (
+                                <div key={slider.field}>
+                                  <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-white/50">{slider.label}</span>
+                                  </div>
+                                  <input type="range" min="0" max="100" value={panelist[slider.field]} onChange={(e) => updatePanelist(panelist.id, slider.field, parseInt(e.target.value))}
+                                    className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-[#8B5A2B]" />
+                                  <div className="flex justify-between text-xs mt-1">
+                                    <span className="text-white/30">{slider.left}</span>
+                                    <span className="text-white/30">{slider.right}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         ))}
+                        <button onClick={addCustomPanelist} className="w-full py-3 border-2 border-dashed border-white/20 rounded-xl text-white/60 hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2">
+                          <Plus className="w-5 h-5" /> Add Panelist
+                        </button>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              <Card className="bg-white/5 border-white/10 sticky top-24">
-                <CardHeader>
-                  <CardTitle className="text-white text-lg">Session Preview</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Type</span>
-                      <span className="text-white">{useCases.find(u => u.id === selectedUseCase)?.displayName}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Topic</span>
-                      <span className="text-white text-right truncate max-w-[120px]">
-                        {topic || 'Not set'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Company</span>
-                      <span className="text-white">{company || 'Not set'}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Country</span>
-                      <span className="text-white">{getCountryFlag(country)}</span>
-                    </div>
-                    <Separator className="bg-white/10" />
-                    <div className="flex justify-between text-sm">
-                      <span className="text-white/50">Panel Size</span>
-                      <span className="text-white">{customPanel.length > 0 ? customPanel.length : 'Auto'}</span>
-                    </div>
                   </div>
+                </div>
 
-                  <Button
-                    onClick={startInterview}
-                    disabled={!topic}
-                    className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white"
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    Start Session
-                  </Button>
-                </CardContent>
-              </Card>
+                {/* Right Column - Preview */}
+                <div className="w-80">
+                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 sticky top-6">
+                    <h3 className="text-white font-semibold mb-4">Session Preview</h3>
+                    <div className="space-y-4 mb-6">
+                      <div className="flex justify-between text-sm"><span className="text-white/50">Type</span><span className="text-white">{selectedTypeData?.title}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-white/50">Topic</span><span className="text-white">{topic || 'Not set'}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-white/50">Company</span><span className="text-white">{company || 'Not set'}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-white/50">Country</span><span className="text-white">{country}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-white/50">Panel Size</span><span className="text-white">{panelMode === 'default' ? '4' : customPanelists.length}</span></div>
+                    </div>
+                    <button onClick={startInterview} disabled={!topic}
+                      className="w-full py-3 bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#8B5A2B]/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <Play className="w-5 h-5" /> Start Session
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </main>
+
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(50px, -30px); }
+            50% { transform: translate(-30px, 50px); }
+            75% { transform: translate(30px, 30px); }
+          }
+        `}</style>
       </div>
     );
   }
 
-  // Render interview step
+  // Render INTERVIEW step
   if (step === 'interview' && session) {
-    const currentSpeaker = session.panel.find(m => m.id === speakingMemberId);
-    
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-violet-950/20 to-slate-950">
-        {/* Header */}
-        <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">Saphira</span>
-              <Badge variant="outline" className="border-violet-500/30 text-violet-300">
-                {getCountryFlag(country)}
-              </Badge>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMuted(!isMuted)}
-                className={cn(
-                  "text-white/60 hover:text-white",
-                  isMuted && "text-red-400 hover:text-red-300"
-                )}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={endInterview}
-                className="text-red-400 hover:text-red-300"
-              >
-                <Square className="w-4 h-4 mr-2" />
-                End
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Interview Area */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Voice Visualization */}
-              <Card className="bg-white/5 border-white/10 relative overflow-hidden">
-                <CardContent className="p-8 flex flex-col items-center justify-center min-h-[320px]">
-                  <VoiceOrb 
-                    isListening={isListening} 
-                    isAiSpeaking={isAiSpeaking}
-                    color="#8b5cf6"
-                  />
-                  
-                  {/* Status */}
-                  <div className="mt-6 text-center">
-                    {isAiSpeaking && currentSpeaker ? (
-                      <div className="flex items-center gap-2 justify-center">
-                        <Badge className="bg-violet-500/20 text-violet-300 border-violet-500/30">
-                          {currentSpeaker.name}
-                        </Badge>
-                        <span className="text-white/60">is speaking...</span>
-                      </div>
-                    ) : isListening ? (
-                      <div className="flex items-center gap-2 justify-center">
-                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                        <span className="text-white/60">Listening...</span>
-                      </div>
-                    ) : isLoading ? (
-                      <div className="flex items-center gap-2 justify-center">
-                        <Loader2 className="w-4 h-4 animate-spin text-violet-400" />
-                        <span className="text-white/60">Processing...</span>
-                      </div>
-                    ) : (
-                      <span className="text-white/40">Ready</span>
-                    )}
-                  </div>
-
-                  {/* Live Transcript */}
-                  {liveTranscript && (
-                    <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10 max-w-md w-full">
-                      <p className="text-white/80 text-center">{liveTranscript}</p>
-                    </div>
-                  )}
-
-                  {/* Error */}
-                  {error && (
-                    <div className="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      {error}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Controls */}
-              <div className="flex justify-center gap-4">
-                {!isListening ? (
-                  <Button
-                    onClick={startListening}
-                    disabled={isAiSpeaking || isLoading}
-                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white px-8"
-                  >
-                    <Mic className="w-4 h-4 mr-2" />
-                    Start Speaking
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={stopListening}
-                    variant="outline"
-                    className="border-red-500/30 text-red-400 hover:bg-red-500/10 px-8"
-                  >
-                    <MicOff className="w-4 h-4 mr-2" />
-                    Stop
-                  </Button>
-                )}
-                
-                {(liveTranscript || finalTranscriptRef.current) && (
-                  <Button
-                    onClick={submitTranscript}
-                    disabled={isLoading}
-                    variant="outline"
-                    className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Send
-                  </Button>
-                )}
-              </div>
-
-              {/* Messages */}
-              <Card className="bg-white/5 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white text-lg">Conversation</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 max-h-96 overflow-y-auto">
-                    {messages.map((message, index) => {
-                      const member = session.panel.find(m => m.id === message.panelMemberId);
-                      
-                      if (message.sender === 'candidate') {
-                        return (
-                          <div key={message.id} className="flex justify-end">
-                            <div className="max-w-[80%] p-4 rounded-2xl rounded-br-md bg-violet-600/20 border border-violet-500/30">
-                              <p className="text-white">{message.text}</p>
-                            </div>
-                          </div>
-                        );
-                      }
-                      
-                      return (
-                        <div key={message.id} className="flex gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 flex items-center justify-center flex-shrink-0">
-                            <span className="text-xs font-medium text-violet-300">
-                              {member?.name?.charAt(0) || '?'}
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-medium text-violet-300">
-                                {member?.name || 'Panel'}
-                              </span>
-                              <span className="text-xs text-white/40">{member?.role}</span>
-                            </div>
-                            <div className={cn(
-                              "p-3 rounded-xl border",
-                              message.isSideRemark || message.isNonVerbal
-                                ? "bg-white/5 border-white/5 italic"
-                                : "bg-white/5 border-white/10"
-                            )}>
-                              <p className={cn(
-                                "text-white/90",
-                                (message.isSideRemark || message.isNonVerbal) && "text-white/60"
-                              )}>
-                                {message.text}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sidebar - Panel Info */}
-            <div className="space-y-6">
-              <Card className="bg-white/5 border-white/10 sticky top-24">
-                <CardHeader>
-                  <CardTitle className="text-white text-lg flex items-center gap-2">
-                    <Users className="w-5 h-5 text-violet-400" />
-                    Panel Members
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {session.panel.map((member) => (
-                      <div
-                        key={member.id}
-                        className={cn(
-                          "p-3 rounded-lg border transition-all",
-                          speakingMemberId === member.id
-                            ? "border-violet-500/50 bg-violet-500/10"
-                            : "border-white/10 bg-white/5"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="w-10 h-10 rounded-full flex items-center justify-center"
-                            style={{ backgroundColor: '#8b5cf620' }}
-                          >
-                            <span 
-                              className="text-sm font-medium"
-                              style={{ color: '#8b5cf6' }}
-                            >
-                              {member.name.charAt(0)}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-white font-medium truncate">{member.name}</div>
-                            <div className="text-white/50 text-sm truncate">{member.role}</div>
-                          </div>
-                          {speakingMemberId === member.id && (
-                            <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+      <div className="min-h-screen bg-[#0a0a0f] flex overflow-hidden">
+        {/* Aurora Background */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute inset-0 opacity-40" style={{
+            background: `radial-gradient(ellipse at 20% 20%, rgba(139, 90, 43, 0.15) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 80%, rgba(106, 27, 154, 0.1) 0%, transparent 50%),
+              radial-gradient(ellipse at 50% 50%, rgba(21, 101, 192, 0.08) 0%, transparent 60%)`
+          }} />
+          <div className="absolute w-[600px] h-[600px] rounded-full blur-[120px] opacity-20" style={{
+            background: 'linear-gradient(135deg, #8B5A2B 0%, #D2B48C 100%)', top: '10%', left: '10%', animation: 'float 20s ease-in-out infinite',
+          }} />
+          <div className="absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-15" style={{
+            background: 'linear-gradient(135deg, #6A1B9A 0%, #BA68C8 100%)', bottom: '10%', right: '10%', animation: 'float 25s ease-in-out infinite reverse',
+          }} />
         </div>
 
-        {/* Hidden audio element for ElevenLabs */}
+        {/* Left Sidebar */}
+        <aside className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 flex flex-col relative z-10">
+          <div className="p-6 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] rounded-xl flex items-center justify-center">
+                <Mic className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-white">Saphire</span>
+            </div>
+          </div>
+          <nav className="flex-1 p-4 space-y-1">
+            {[{ icon: Home, label: 'Dashboard', active: false }, { icon: Mic, label: 'Interview', active: true }, { icon: Users, label: 'Presentation', active: false }, { icon: BarChart3, label: 'Feedback', active: false }, { icon: Settings, label: 'Settings', active: false }].map((item) => (
+              <button key={item.label} onClick={() => item.label === 'Dashboard' ? router.push('/dashboard') : null}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${item.active ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'}`}>
+                <item.icon className="w-5 h-5" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col relative z-10">
+          {/* Header */}
+          <header className="h-16 border-b border-white/10 flex items-center justify-between px-6">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setStep('setup')} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                <ChevronLeft className="w-5 h-5 text-white/60" />
+              </button>
+              <div>
+                <h1 className="text-white font-semibold">{session.useCase === 'board_presentation' ? 'Executive Panel' : 'Interview Panel'}</h1>
+                <p className="text-white/50 text-sm">{topic || 'Practice Session'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={() => setIsMuted(!isMuted)} className={`p-2 rounded-lg transition-colors ${isMuted ? 'bg-red-500/20 text-red-400' : 'hover:bg-white/10 text-white/60'}`}>
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              </button>
+              <div className="flex -space-x-2">
+                {personas.map((p) => (
+                  <div key={p.id} className="w-8 h-8 rounded-full border-2 border-[#0a0a0f] flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: p.color }}>
+                    {p.name[0]}
+                  </div>
+                ))}
+              </div>
+              <span className="text-white/50 text-sm">{personas.length} Panelists</span>
+            </div>
+          </header>
+
+          {/* Content Area */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Left - Main Stage */}
+            <div className="flex-1 p-6 flex flex-col">
+              {/* Personas Grid */}
+              <div className="flex-1 grid grid-cols-2 gap-4 mb-6">
+                {personas.map((persona) => {
+                  const Icon = persona.icon;
+                  const isSelected = selectedPersona?.id === persona.id;
+                  return (
+                    <div key={persona.id} onClick={() => setSelectedPersona(persona)}
+                      className={`relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 group ${isSelected ? 'ring-2 ring-white/30' : ''}`}
+                      style={{ background: `linear-gradient(135deg, ${persona.color}15 0%, ${persona.secondaryColor}08 100%)`, border: `1px solid ${persona.color}30` }}>
+                      <div className="absolute inset-0 bg-white/5 backdrop-blur-sm" />
+                      <div className="absolute inset-0">
+                        <PersonaWaveform isActive={persona.speaking} color={persona.color} secondaryColor={persona.secondaryColor} />
+                      </div>
+                      <div className="relative h-full flex flex-col items-center justify-center p-4">
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 transition-all duration-300 ${persona.speaking ? 'scale-110' : 'group-hover:scale-105'}`}
+                          style={{ background: `linear-gradient(135deg, ${persona.color} 0%, ${persona.secondaryColor} 100%)`, boxShadow: persona.speaking ? `0 0 40px ${persona.color}80` : 'none' }}>
+                          <Icon className="w-7 h-7 text-white" />
+                        </div>
+                        <h3 className="text-white font-bold text-lg">{persona.name}</h3>
+                        <p className="text-white/60 text-sm">{persona.role}</p>
+                        {persona.speaking && <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full animate-pulse" style={{ backgroundColor: persona.color }} />}
+                        <div className="absolute bottom-3">
+                          <SpeakingBars isSpeaking={persona.speaking} color={persona.color} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Start Speaking Button */}
+              <div className="flex justify-center mb-6">
+                <button onClick={() => isListening ? stopListening() : startListening()}
+                  className={`flex items-center gap-3 px-8 py-4 rounded-full font-semibold transition-all ${isListening ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30' : 'bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white shadow-lg shadow-[#8B5A2B]/30 hover:shadow-[#8B5A2B]/50'}`}>
+                  <Mic className="w-5 h-5" />
+                  {isListening ? 'Stop Speaking' : 'Start Speaking'}
+                </button>
+              </div>
+
+              {/* Live Transcript */}
+              {liveTranscript && (
+                <div className="bg-white/5 rounded-xl p-4 mb-4 border border-white/10">
+                  <p className="text-white/80">{liveTranscript}</p>
+                </div>
+              )}
+
+              {/* Conversation */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden flex flex-col h-64">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <h3 className="text-white font-semibold text-sm">Conversation</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {messages.filter(m => m.text).map((msg, index) => {
+                    const msgPersona = msg.sender === 'candidate' ? null : getPersonaById(msg.panelMemberId || '');
+                    return (
+                      <div key={index} className="flex items-start gap-3">
+                        {msg.sender !== 'candidate' && msgPersona && (
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white" style={{ backgroundColor: msgPersona.color }}>
+                            {msgPersona.name[0]}
+                          </div>
+                        )}
+                        {msg.sender === 'candidate' && (
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-bold">Y</span>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="text-xs text-white/50 mb-1">
+                            {msg.sender === 'candidate' ? 'You' : msgPersona?.name}
+                            <span className="ml-2 text-white/30">{msgPersona?.shortRole}</span>
+                          </p>
+                          <p className="text-white/80 text-sm leading-relaxed">{msg.text}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Panel Members */}
+            <div className="w-72 bg-white/5 backdrop-blur-xl border-l border-white/10 p-6">
+              <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <Users className="w-4 h-4 text-white/60" /> Panel Members
+              </h3>
+              <div className="space-y-3">
+                {personas.map((persona) => (
+                  <div key={persona.id} onClick={() => setSelectedPersona(persona)}
+                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${selectedPersona?.id === persona.id ? 'bg-white/10' : 'hover:bg-white/5'}`}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: persona.color }}>
+                      <span className="text-white font-bold text-sm">{persona.name[0]}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium text-sm truncate">{persona.name}</p>
+                      <p className="text-white/50 text-xs">{persona.role}</p>
+                    </div>
+                    {persona.speaking && <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: persona.color }} />}
+                  </div>
+                ))}
+              </div>
+
+              {/* Input */}
+              <div className="mt-6 pt-6 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <input type="text" value={currentInput} onChange={(e) => setCurrentInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSend()} placeholder="Type a message..."
+                    className="flex-1 px-4 py-2.5 bg-white/10 rounded-full text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                  <button onClick={handleSend} className="p-2.5 bg-[#8B5A2B] text-white rounded-full hover:bg-[#6d4620] transition-colors">
+                    <MessageSquare className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* End Session */}
+              <button onClick={endInterview} className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 bg-red-500/20 text-red-400 rounded-xl hover:bg-red-500/30 transition-colors">
+                <PhoneOff className="w-4 h-4" />
+                <span className="text-sm font-medium">End Session</span>
+              </button>
+            </div>
+          </div>
+        </main>
+
+        {/* Hidden audio element */}
         <audio ref={audioRef} className="hidden" />
+
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(50px, -30px); }
+            50% { transform: translate(-30px, 50px); }
+            75% { transform: translate(30px, 30px); }
+          }
+          @keyframes soundBar {
+            0% { height: 4px; }
+            100% { height: 20px; }
+          }
+        `}</style>
       </div>
     );
   }
 
-  // Render summary step
+  // Render SUMMARY step
   if (step === 'summary' && summary) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-violet-950/20 to-slate-950">
-        {/* Header */}
-        <header className="border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-white">Saphira</span>
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-6">
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 max-w-2xl w-full">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] rounded-full flex items-center justify-center mx-auto mb-4">
+              <BarChart3 className="w-8 h-8 text-white" />
             </div>
-            <Button 
-              variant="ghost" 
-              onClick={() => router.push('/dashboard')}
-              className="text-white/60 hover:text-white"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </div>
-        </header>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 mb-6">
-              <CheckCircle className="w-8 h-8 text-green-400" />
-            </div>
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Interview Complete!
-            </h1>
-            <p className="text-white/60 text-lg">
-              Here's how you performed
-            </p>
+            <h1 className="text-3xl font-bold text-white mb-2">Interview Complete!</h1>
+            <p className="text-white/60">Here is how you performed</p>
           </div>
 
           <div className="space-y-6">
-            {/* Overall Score */}
-            <Card className="bg-white/5 border-white/10">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl font-bold text-white mb-2">
-                      {summary.overallScore}%
-                    </div>
-                    <div className="text-white/60">Overall Score</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Strengths & Improvements */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-white/5 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-400" />
-                    Strengths
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {summary.keyStrengths.map((strength, index) => (
-                      <li key={index} className="flex items-start gap-2 text-white/80">
-                        <ChevronRight className="w-4 h-4 text-green-400 mt-1 flex-shrink-0" />
-                        {strength}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white/5 border-white/10">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Lightbulb className="w-5 h-5 text-yellow-400" />
-                    Areas to Improve
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {summary.areasToImprove.map((improvement, index) => (
-                      <li key={index} className="flex items-start gap-2 text-white/80">
-                        <ChevronRight className="w-4 h-4 text-yellow-400 mt-1 flex-shrink-0" />
-                        {improvement}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+            <div className="text-center">
+              <div className="text-6xl font-bold text-white mb-2">{summary.overallScore}%</div>
+              <div className="text-white/60">Overall Score</div>
             </div>
 
-            {/* Key Insights */}
-            <Card className="bg-white/5 border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-violet-400" />
-                  Key Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 rounded-xl p-4">
+                <h3 className="text-white font-semibold mb-3">Strengths</h3>
                 <ul className="space-y-2">
-                  {summary.panelFeedback && Object.values(summary.panelFeedback).map((feedback, index) => (
-                    <li key={index} className="flex items-start gap-2 text-white/80">
-                      <ChevronRight className="w-4 h-4 text-violet-400 mt-1 flex-shrink-0" />
-                      {feedback}
+                  {summary.keyStrengths.map((s, i) => (
+                    <li key={i} className="text-white/70 text-sm flex items-start gap-2">
+                      <span className="text-green-400">✓</span> {s}
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="bg-white/5 rounded-xl p-4">
+                <h3 className="text-white font-semibold mb-3">Areas to Improve</h3>
+                <ul className="space-y-2">
+                  {summary.areasToImprove.map((s, i) => (
+                    <li key={i} className="text-white/70 text-sm flex items-start gap-2">
+                      <span className="text-yellow-400">•</span> {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-4 pt-6">
-              <Button
-                onClick={() => {
-                  setStep('setup');
-                  setSession(null);
-                  setMessages([]);
-                  setSummary(null);
-                  setTopic('');
-                  setCompany('');
-                }}
-                variant="outline"
-                className="border-white/20 text-white hover:bg-white/10"
-              >
+            <div className="flex gap-4">
+              <button onClick={() => { setStep('setup'); setSession(null); setMessages([]); setSummary(null); setTopic(''); setCompany(''); }}
+                className="flex-1 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all">
                 Start New Interview
-              </Button>
-              <Button
-                onClick={() => router.push('/dashboard')}
-                className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white"
-              >
+              </button>
+              <button onClick={() => router.push('/dashboard')}
+                className="flex-1 py-3 bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#8B5A2B]/30 transition-all">
                 Go to Dashboard
-              </Button>
+              </button>
             </div>
           </div>
         </div>
