@@ -62,7 +62,7 @@ export async function generateNextQuestion(
   // 2. Try category-based questions from verified dataset
   const category = conversationLength < 2 ? 'traditional' : 
                    conversationLength < 4 ? 'personality' : 
-                   conversationLength < 6 ? 'tough' : 'behavioral';
+                   conversationLength < 6 ? 'tough' : 'competency';
   
   const categoryQuestions = getQuestionsByCategory(country, category);
   if (categoryQuestions.length > 0 && Math.random() < 0.6) {

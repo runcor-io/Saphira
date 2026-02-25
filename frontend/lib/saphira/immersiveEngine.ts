@@ -18,7 +18,7 @@ import {
 } from './types';
 import { getToneGuide, getCulturalContext, Country } from './verifiedDataset';
 import { analyzeResponse } from './culturalDetector';
-import { generatePanelInteraction, selectSpeakingMember } from './panelInteraction';
+import { generatePanelInteraction } from './panelInteraction';
 
 interface ConversationContext {
   topic: string;
@@ -130,13 +130,13 @@ function buildConversationContext(
   // Add analysis context
   const analysis = analyzeResponse(lastCandidateResponse, session.country || 'nigeria');
   context += `\nRESPONSE ANALYSIS:
-- Confidence: ${analysis.confidenceLevel}/10
-- ${analysis.hasSpecificExample ? '✓ Has specific example' : '✗ Lacks specific example'}
-- ${analysis.hasNumbers ? '✓ Uses numbers/metrics' : '✗ No quantified achievements'}
-- ${analysis.answeredDirectly ? '✓ Answered directly' : '⚠ May be evasive'}
-- Word count: ${analysis.wordCount}
-${analysis.usesPidgin ? '- Uses local dialect/pidgin' : ''}
-${analysis.religiousReferences.length > 0 ? `- Religious references: ${analysis.religiousReferences.join(', ')}` : ''}`;
+- Confidence: ${analysis.cultural.confidenceLevel}/10
+- ${analysis.content.hasSpecificExample ? '✓ Has specific example' : '✗ Lacks specific example'}
+- ${analysis.content.hasNumbers ? '✓ Uses numbers/metrics' : '✗ No quantified achievements'}
+- ${analysis.content.answeredDirectly ? '✓ Answered directly' : '⚠ May be evasive'}
+- Word count: ${analysis.content.wordCount}
+${analysis.cultural.usesPidgin ? '- Uses local dialect/pidgin' : ''}
+${analysis.cultural.religiousReferences.length > 0 ? `- Religious references: ${analysis.cultural.religiousReferences.join(', ')}` : ''}`;
 
   return context;
 }
@@ -319,7 +319,7 @@ async function generateSideRemark(
     sender: 'panel-member',
     panelMemberId: speaker.id,
     text: remark,
-    timestamp: newDate(),
+    timestamp: new Date(),
     isQuestion: false,
     isSideRemark: true,
   };

@@ -62,7 +62,7 @@ export default function ProfilePage() {
         email: user.email || '',
         full_name: fullName,
         created_at: user.created_at,
-        last_sign_in: user.last_sign_in_at,
+        last_sign_in: user.last_sign_in_at || null,
       });
       setEditName(fullName);
 

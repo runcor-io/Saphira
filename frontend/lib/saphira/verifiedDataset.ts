@@ -65,11 +65,18 @@ export interface CulturalContext {
 export interface CountryDataset {
   metadata: {
     dataset_name: string;
+    version?: string;
+    created_date?: string;
+    description?: string;
     sources: string[];
   };
-  cultural_context: CulturalContext;
-  companies: Record<string, CompanyData>;
-  question_categories: Record<string, any[]>;
+  cultural_context: Record<string, any>;
+  phrasing_preferences?: Record<string, Record<string, string>>;
+  company_specific: Record<string, any>;
+  question_bank?: {
+    categories: Record<string, any[]>;
+    cultural_variations?: Record<string, string>;
+  };
   common_questions?: any[];
 }
 
@@ -108,7 +115,7 @@ export function getDataset(country: Country): CountryDataset {
  */
 export function getCompaniesForCountry(country: Country): string[] {
   const dataset = getDataset(country);
-  return Object.keys(dataset.companies || {});
+  return Object.keys(dataset.company_specific || {});
 }
 
 /**
@@ -121,7 +128,7 @@ export function getAllCompanies(): { id: string; name: string; country: Country 
 
   (Object.keys(DATASETS) as Country[]).forEach(country => {
     const dataset = getDataset(country);
-    Object.entries(dataset.companies || {}).forEach(([id, data]) => {
+    Object.entries(dataset.company_specific || {}).forEach(([id, data]) => {
       companies.push({
         id,
         name: (data as CompanyData).name || id.replace(/_/g, ' '),
@@ -139,13 +146,13 @@ export function getAllCompanies(): { id: string; name: string; country: Country 
 export function getCompanyQuestions(company: string, country?: Country): Question[] {
   const targetCountry = country || COMPANY_COUNTRY_MAP[company] || 'nigeria';
   const dataset = getDataset(targetCountry);
-  const companyData = dataset.companies?.[company];
+  const companyData = dataset.company_specific?.[company];
   
   if (!companyData) {
     return getGeneralQuestions(targetCountry);
   }
 
-  return companyData.questions.map((q, idx) => ({
+  return companyData.questions.map((q: string, idx: number) => ({
     id: `${company}_${idx}`,
     question: q,
     category: 'traditional',
@@ -160,8 +167,8 @@ export function getGeneralQuestions(country: Country): Question[] {
   const dataset = getDataset(country);
   const questions: Question[] = [];
 
-  // Get from question_categories
-  Object.entries(dataset.question_categories || {}).forEach(([category, qs]) => {
+  // Get from question_bank?.categories
+  Object.entries(dataset.question_bank?.categories || {}).forEach(([category, qs]) => {
     qs.forEach((q: any, idx: number) => {
       questions.push({
         id: `${country}_${category}_${idx}`,
@@ -239,7 +246,7 @@ ${ctx.conversational_fillers.join(', ')}
 
   // Add company-specific context
   if (company && company !== 'general') {
-    const companyData = dataset.companies?.[company];
+    const companyData = dataset.company_specific?.[company];
     if (companyData?.core_values) {
       guide += `
 ## ${companyData.name} Core Values
@@ -328,7 +335,7 @@ export function getLocalVariation(country: Country, westernQuestion: string): st
 
   // Find matching western phrase
   const entry = Object.entries(prefs.Western).find(([key, phrase]) => 
-    westernQuestion.toLowerCase().includes(phrase.toLowerCase())
+    westernQuestion.toLowerCase().includes((phrase as string).toLowerCase())
   );
 
   if (entry) {
@@ -396,7 +403,7 @@ export function getQuestionsByCategory(
 export function getCompanyInfo(company: string, country?: Country): CompanyData | null {
   const targetCountry = country || COMPANY_COUNTRY_MAP[company] || 'nigeria';
   const dataset = getDataset(targetCountry);
-  return dataset.companies?.[company] || null;
+  return dataset.company_specific?.[company] || null;
 }
 
 /**
