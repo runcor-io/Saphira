@@ -12,11 +12,6 @@ import {
   Crown,
   Sparkles,
   History,
-  Mic,
-  Users,
-  Home,
-  BarChart3,
-  Settings,
   ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -185,65 +180,14 @@ export default function CreditsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#8B5A2B] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex overflow-hidden">
-      {/* Aurora Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 opacity-40" style={{
-          background: `radial-gradient(ellipse at 20% 20%, rgba(139, 90, 43, 0.15) 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 80%, rgba(106, 27, 154, 0.1) 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 50%, rgba(21, 101, 192, 0.08) 0%, transparent 60%)`
-        }} />
-        <div className="absolute w-[600px] h-[600px] rounded-full blur-[120px] opacity-20" style={{
-          background: 'linear-gradient(135deg, #8B5A2B 0%, #D2B48C 100%)', top: '10%', left: '10%', animation: 'float 20s ease-in-out infinite',
-        }} />
-        <div className="absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-15" style={{
-          background: 'linear-gradient(135deg, #6A1B9A 0%, #BA68C8 100%)', bottom: '10%', right: '10%', animation: 'float 25s ease-in-out infinite reverse',
-        }} />
-      </div>
-
-      {/* Left Sidebar */}
-      <aside className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 flex flex-col relative z-10">
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] rounded-xl flex items-center justify-center">
-              <Mic className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white">Saphire</span>
-          </div>
-        </div>
-        <nav className="flex-1 p-4 space-y-1">
-          {[
-            { icon: Home, label: 'Dashboard', active: false, href: '/dashboard' },
-            { icon: Mic, label: 'Interview', active: false, href: '/saphira-interview' },
-            { icon: Users, label: 'Presentation', active: false, href: '/presentation' },
-            { icon: BarChart3, label: 'Feedback', active: false, href: '/feedback' },
-            { icon: Settings, label: 'Settings', active: false, href: '/settings' },
-          ].map((item) => (
-            <button
-              key={item.label}
-              onClick={() => router.push(item.href)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                item.active 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="text-sm font-medium">{item.label}</span>
-            </button>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col relative z-10 overflow-hidden">
+    <main className="flex-1 flex flex-col relative z-10 overflow-hidden">
         {/* Header */}
         <header className="h-16 border-b border-white/10 flex items-center px-6">
           <div className="flex items-center gap-4">
@@ -426,45 +370,35 @@ export default function CreditsPage() {
             </div>
           </div>
         </div>
-      </main>
 
-      {/* Verification Dialog */}
-      <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
-        <DialogContent className="bg-[#1a1a1f] border border-white/10 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-white">
-              {verifyStatus === 'loading' ? 'Verifying Payment' : 
-               verifyStatus === 'success' ? 'Payment Successful!' : 'Payment Failed'}
-            </DialogTitle>
-            <DialogDescription className="text-white/50">{verifyMessage}</DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center py-6">
-            {verifyStatus === 'loading' && (
-              <Loader2 className="w-16 h-16 animate-spin text-[#8B5A2B]" />
-            )}
-            {verifyStatus === 'success' && (
-              <CheckCircle className="w-16 h-16 text-emerald-400" />
-            )}
-            {verifyStatus === 'error' && (
-              <XCircle className="w-16 h-16 text-red-400" />
-            )}
-          </div>
-          {verifyStatus !== 'loading' && (
-            <Button onClick={() => setShowVerifyDialog(false)} className="w-full bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] hover:shadow-lg hover:shadow-[#8B5A2B]/30">
-              Close
-            </Button>
+        {/* Verification Dialog */}
+        <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
+      <DialogContent className="bg-[#1a1a1f] border border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle className="text-white">
+            {verifyStatus === 'loading' ? 'Verifying Payment' : 
+             verifyStatus === 'success' ? 'Payment Successful!' : 'Payment Failed'}
+          </DialogTitle>
+          <DialogDescription className="text-white/50">{verifyMessage}</DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-center py-6">
+          {verifyStatus === 'loading' && (
+            <Loader2 className="w-16 h-16 animate-spin text-[#8B5A2B]" />
           )}
-        </DialogContent>
-      </Dialog>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0); }
-          25% { transform: translate(50px, -30px); }
-          50% { transform: translate(-30px, 50px); }
-          75% { transform: translate(30px, 30px); }
-        }
-      `}</style>
-    </div>
+          {verifyStatus === 'success' && (
+            <CheckCircle className="w-16 h-16 text-emerald-400" />
+          )}
+          {verifyStatus === 'error' && (
+            <XCircle className="w-16 h-16 text-red-400" />
+          )}
+        </div>
+        {verifyStatus !== 'loading' && (
+          <Button onClick={() => setShowVerifyDialog(false)} className="w-full bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] hover:shadow-lg hover:shadow-[#8B5A2B]/30">
+            Close
+          </Button>
+        )}
+      </DialogContent>
+    </Dialog>
+    </main>
   );
 }
