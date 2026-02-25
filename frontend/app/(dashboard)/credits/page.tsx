@@ -11,10 +11,15 @@ import {
   Zap,
   Crown,
   Sparkles,
-  History
+  History,
+  Mic,
+  Users,
+  Home,
+  BarChart3,
+  Settings,
+  ArrowLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Dialog, 
@@ -153,245 +158,313 @@ export default function CreditsPage() {
   const getIconForPackage = (slug: string) => {
     switch (slug) {
       case 'starter':
-        return <Coins className="w-8 h-8 text-amber-500" />;
+        return <Coins className="w-8 h-8 text-amber-400" />;
       case 'pro':
-        return <Zap className="w-8 h-8 text-blue-500" />;
+        return <Zap className="w-8 h-8 text-blue-400" />;
       case 'premium':
-        return <Crown className="w-8 h-8 text-purple-500" />;
+        return <Crown className="w-8 h-8 text-purple-400" />;
       default:
-        return <Sparkles className="w-8 h-8 text-wood" />;
+        return <Sparkles className="w-8 h-8 text-[#D2B48C]" />;
     }
   };
 
   const formatTransactionType = (type: string) => {
     switch (type) {
       case 'purchase':
-        return <Badge variant="default" className="bg-green-500">Purchase</Badge>;
+        return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Purchase</Badge>;
       case 'usage':
-        return <Badge variant="secondary">Used</Badge>;
+        return <Badge className="bg-white/10 text-white/60 border-white/20">Used</Badge>;
       case 'bonus':
-        return <Badge variant="outline" className="border-amber-500 text-amber-600">Bonus</Badge>;
+        return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">Bonus</Badge>;
       case 'refund':
-        return <Badge variant="outline" className="border-red-500 text-red-600">Refund</Badge>;
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Refund</Badge>;
       default:
-        return <Badge variant="outline">{type}</Badge>;
+        return <Badge className="bg-white/10 text-white/60 border-white/20">{type}</Badge>;
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-        <Loader2 className="w-8 h-8 animate-spin text-wood" />
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#8B5A2B] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-charcoal mb-2">Credits</h1>
-        <p className="text-gray-500">Purchase credits to access interviews and presentations</p>
+    <div className="min-h-screen bg-[#0a0a0f] flex overflow-hidden">
+      {/* Aurora Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 opacity-40" style={{
+          background: `radial-gradient(ellipse at 20% 20%, rgba(139, 90, 43, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(106, 27, 154, 0.1) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 50%, rgba(21, 101, 192, 0.08) 0%, transparent 60%)`
+        }} />
+        <div className="absolute w-[600px] h-[600px] rounded-full blur-[120px] opacity-20" style={{
+          background: 'linear-gradient(135deg, #8B5A2B 0%, #D2B48C 100%)', top: '10%', left: '10%', animation: 'float 20s ease-in-out infinite',
+        }} />
+        <div className="absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-15" style={{
+          background: 'linear-gradient(135deg, #6A1B9A 0%, #BA68C8 100%)', bottom: '10%', right: '10%', animation: 'float 25s ease-in-out infinite reverse',
+        }} />
       </div>
 
-      {/* Balance Card */}
-      <Card className="bg-gradient-to-r from-wood to-wood-dark text-white border-none">
-        <CardContent className="p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/80 text-sm mb-1">Current Balance</p>
-              <h2 className="text-5xl font-bold">
-                {balance?.balance.toLocaleString() || 0}
-              </h2>
-              <p className="text-white/60 text-sm mt-2">credits available</p>
+      {/* Left Sidebar */}
+      <aside className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 flex flex-col relative z-10">
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] rounded-xl flex items-center justify-center">
+              <Mic className="w-5 h-5 text-white" />
             </div>
-            <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center">
-              <Coins className="w-10 h-10 text-white" />
+            <span className="text-xl font-bold text-white">Saphire</span>
+          </div>
+        </div>
+        <nav className="flex-1 p-4 space-y-1">
+          {[
+            { icon: Home, label: 'Dashboard', active: false, href: '/dashboard' },
+            { icon: Mic, label: 'Interview', active: false, href: '/saphira-interview' },
+            { icon: Users, label: 'Presentation', active: false, href: '/presentation' },
+            { icon: BarChart3, label: 'Feedback', active: false, href: '/feedback' },
+            { icon: Settings, label: 'Settings', active: false, href: '/settings' },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={() => router.push(item.href)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                item.active 
+                  ? 'bg-white/10 text-white' 
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <item.icon className="w-5 h-5" />
+              <span className="text-sm font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col relative z-10 overflow-hidden">
+        {/* Header */}
+        <header className="h-16 border-b border-white/10 flex items-center px-6">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.push('/dashboard')} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+              <ArrowLeft className="w-5 h-5 text-white/60" />
+            </button>
+            <div>
+              <h1 className="text-white font-semibold">Credits</h1>
+              <p className="text-white/50 text-sm">Purchase credits to access interviews and presentations</p>
             </div>
           </div>
-          {balance && balance.lifetime_earned > 0 && (
-            <div className="mt-6 pt-6 border-t border-white/20 flex gap-8">
-              <div>
-                <p className="text-white/60 text-xs uppercase tracking-wider">Lifetime Earned</p>
-                <p className="text-xl font-semibold">{balance.lifetime_earned.toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs uppercase tracking-wider">Lifetime Used</p>
-                <p className="text-xl font-semibold">{balance.lifetime_used.toLocaleString()}</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </header>
 
-      {/* Credit Packages */}
-      <div>
-        <h2 className="text-xl font-semibold text-charcoal mb-4">Purchase Credits</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {packages.map((pkg) => (
-            <Card 
-              key={pkg.id} 
-              className={`relative overflow-hidden ${pkg.is_popular ? 'ring-2 ring-wood shadow-lg' : ''}`}
-            >
-              {pkg.is_popular && (
-                <div className="absolute top-0 right-0 bg-wood text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
-                  Most Popular
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-6xl mx-auto space-y-8">
+            {/* Balance Card */}
+            <div className="bg-gradient-to-r from-[#8B5A2B] to-[#6B4423] rounded-2xl p-8 border border-white/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm mb-1">Current Balance</p>
+                  <h2 className="text-5xl font-bold text-white">
+                    {balance?.balance.toLocaleString() || 0}
+                  </h2>
+                  <p className="text-white/60 text-sm mt-2">credits available</p>
+                </div>
+                <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center">
+                  <Coins className="w-10 h-10 text-white" />
+                </div>
+              </div>
+              {balance && balance.lifetime_earned > 0 && (
+                <div className="mt-6 pt-6 border-t border-white/20 flex gap-8">
+                  <div>
+                    <p className="text-white/60 text-xs uppercase tracking-wider">Lifetime Earned</p>
+                    <p className="text-xl font-semibold text-white">{balance.lifetime_earned.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-white/60 text-xs uppercase tracking-wider">Lifetime Used</p>
+                    <p className="text-xl font-semibold text-white">{balance.lifetime_used.toLocaleString()}</p>
+                  </div>
                 </div>
               )}
-              <CardHeader className="pb-4">
-                <div className="flex items-center gap-3 mb-2">
-                  {getIconForPackage(pkg.slug)}
-                  <div>
-                    <CardTitle className="text-lg">{pkg.name}</CardTitle>
-                    <p className="text-gray-500 text-sm">{pkg.description}</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-charcoal">₦{pkg.price_naira.toLocaleString()}</span>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Base Credits</span>
-                    <span className="font-medium">{pkg.credits_amount.toLocaleString()}</span>
-                  </div>
-                  {pkg.bonus_credits > 0 && (
-                    <div className="flex items-center justify-between text-green-600">
-                      <span>Bonus Credits</span>
-                      <span className="font-medium">+{pkg.bonus_credits.toLocaleString()}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <span className="font-semibold">Total Credits</span>
-                    <span className="font-bold text-lg">{pkg.total_credits.toLocaleString()}</span>
-                  </div>
-                </div>
+            </div>
 
-                <ul className="space-y-2">
-                  {pkg.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <Button 
-                  onClick={() => handlePurchase(pkg)}
-                  disabled={purchasing === pkg.slug}
-                  className={`w-full ${pkg.is_popular ? 'bg-wood hover:bg-wood-dark' : ''}`}
-                >
-                  {purchasing === pkg.slug ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Buy Now
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent Transactions */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-charcoal">Recent Transactions</h2>
-          <Button variant="ghost" size="sm" className="text-wood">
-            <History className="w-4 h-4 mr-2" />
-            View All
-          </Button>
-        </div>
-        
-        <Card>
-          <CardContent className="p-0">
-            {transactions.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Coins className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>No transactions yet</p>
-                <p className="text-sm mt-1">Your credit transactions will appear here</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {transactions.map((tx) => (
-                  <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        tx.transaction_type === 'purchase' ? 'bg-green-100 text-green-600' :
-                        tx.transaction_type === 'usage' ? 'bg-red-100 text-red-600' :
-                        'bg-amber-100 text-amber-600'
-                      }`}>
-                        {tx.transaction_type === 'purchase' ? <CheckCircle className="w-5 h-5" /> :
-                         tx.transaction_type === 'usage' ? <Coins className="w-5 h-5" /> :
-                         <Sparkles className="w-5 h-5" />}
+            {/* Credit Packages */}
+            <div>
+              <h2 className="text-xl font-semibold text-white mb-4">Purchase Credits</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {packages.map((pkg) => (
+                  <div 
+                    key={pkg.id} 
+                    className={`relative overflow-hidden bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 transition-all hover:border-white/20 ${pkg.is_popular ? 'ring-2 ring-[#8B5A2B]' : ''}`}
+                  >
+                    {pkg.is_popular && (
+                      <div className="absolute top-0 right-0 bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white text-xs font-semibold px-3 py-1 rounded-bl-lg">
+                        Most Popular
                       </div>
-                      <div>
-                        <p className="font-medium text-charcoal">
-                          {tx.description || tx.package_name || 'Credit Transaction'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(tx.created_at).toLocaleDateString('en-NG', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
+                    )}
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        {getIconForPackage(pkg.slug)}
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">{pkg.name}</h3>
+                          <p className="text-white/50 text-sm">{pkg.description}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-semibold ${
-                        tx.transaction_type === 'usage' ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {tx.transaction_type === 'usage' ? '-' : '+'}{tx.amount.toLocaleString()}
-                      </p>
-                      {formatTransactionType(tx.transaction_type)}
+                      
+                      <div className="flex items-baseline gap-1 mb-4">
+                        <span className="text-3xl font-bold text-white">₦{pkg.price_naira.toLocaleString()}</span>
+                      </div>
+                      
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/60">Base Credits</span>
+                          <span className="font-medium text-white">{pkg.credits_amount.toLocaleString()}</span>
+                        </div>
+                        {pkg.bonus_credits > 0 && (
+                          <div className="flex items-center justify-between text-emerald-400">
+                            <span>Bonus Credits</span>
+                            <span className="font-medium">+{pkg.bonus_credits.toLocaleString()}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                          <span className="font-semibold text-white">Total Credits</span>
+                          <span className="font-bold text-lg text-white">{pkg.total_credits.toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      <ul className="space-y-2 mb-6">
+                        {pkg.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-2 text-sm text-white/60">
+                            <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Button 
+                        onClick={() => handlePurchase(pkg)}
+                        disabled={purchasing === pkg.slug}
+                        className={`w-full ${pkg.is_popular ? 'bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] hover:shadow-lg hover:shadow-[#8B5A2B]/30' : 'bg-white/10 hover:bg-white/20 text-white'}`}
+                      >
+                        {purchasing === pkg.slug ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Buy Now
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+
+            {/* Recent Transactions */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Recent Transactions</h2>
+                <Button variant="ghost" size="sm" className="text-[#D2B48C] hover:text-[#8B5A2B] hover:bg-white/5">
+                  <History className="w-4 h-4 mr-2" />
+                  View All
+                </Button>
+              </div>
+              
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
+                {transactions.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <Coins className="w-12 h-12 mx-auto mb-3 text-white/20" />
+                    <p className="text-white/50">No transactions yet</p>
+                    <p className="text-sm text-white/40 mt-1">Your credit transactions will appear here</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-white/10">
+                    {transactions.map((tx) => (
+                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            tx.transaction_type === 'purchase' ? 'bg-emerald-500/20 text-emerald-400' :
+                            tx.transaction_type === 'usage' ? 'bg-red-500/20 text-red-400' :
+                            'bg-amber-500/20 text-amber-400'
+                          }`}>
+                            {tx.transaction_type === 'purchase' ? <CheckCircle className="w-5 h-5" /> :
+                             tx.transaction_type === 'usage' ? <Coins className="w-5 h-5" /> :
+                             <Sparkles className="w-5 h-5" />}
+                          </div>
+                          <div>
+                            <p className="font-medium text-white">
+                              {tx.description || tx.package_name || 'Credit Transaction'}
+                            </p>
+                            <p className="text-sm text-white/40">
+                              {new Date(tx.created_at).toLocaleDateString('en-NG', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${
+                            tx.transaction_type === 'usage' ? 'text-red-400' : 'text-emerald-400'
+                          }`}>
+                            {tx.transaction_type === 'usage' ? '-' : '+'}{tx.amount.toLocaleString()}
+                          </p>
+                          {formatTransactionType(tx.transaction_type)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
 
       {/* Verification Dialog */}
       <Dialog open={showVerifyDialog} onOpenChange={setShowVerifyDialog}>
-        <DialogContent>
+        <DialogContent className="bg-[#1a1a1f] border border-white/10 text-white">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-white">
               {verifyStatus === 'loading' ? 'Verifying Payment' : 
                verifyStatus === 'success' ? 'Payment Successful!' : 'Payment Failed'}
             </DialogTitle>
-            <DialogDescription>{verifyMessage}</DialogDescription>
+            <DialogDescription className="text-white/50">{verifyMessage}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-center py-6">
             {verifyStatus === 'loading' && (
-              <Loader2 className="w-16 h-16 animate-spin text-wood" />
+              <Loader2 className="w-16 h-16 animate-spin text-[#8B5A2B]" />
             )}
             {verifyStatus === 'success' && (
-              <CheckCircle className="w-16 h-16 text-green-500" />
+              <CheckCircle className="w-16 h-16 text-emerald-400" />
             )}
             {verifyStatus === 'error' && (
-              <XCircle className="w-16 h-16 text-red-500" />
+              <XCircle className="w-16 h-16 text-red-400" />
             )}
           </div>
           {verifyStatus !== 'loading' && (
-            <Button onClick={() => setShowVerifyDialog(false)} className="w-full">
+            <Button onClick={() => setShowVerifyDialog(false)} className="w-full bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] hover:shadow-lg hover:shadow-[#8B5A2B]/30">
               Close
             </Button>
           )}
         </DialogContent>
       </Dialog>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0); }
+          25% { transform: translate(50px, -30px); }
+          50% { transform: translate(-30px, 50px); }
+          75% { transform: translate(30px, 30px); }
+        }
+      `}</style>
     </div>
   );
 }

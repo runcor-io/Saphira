@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Mic, 
   Users, 
@@ -9,9 +10,15 @@ import {
   Plus, 
   Award,
   TrendingUp,
-  Clock
+  Clock,
+  Home,
+  Settings,
+  BarChart3,
+  ChevronLeft,
+  Briefcase,
+  GraduationCap,
+  Crown
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { Interview, Presentation } from '@/lib/supabase/types';
 
@@ -22,6 +29,7 @@ interface DashboardStats {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalSessions: 0,
     avgScore: null,
@@ -41,14 +49,12 @@ export default function DashboardPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch interviews
       const { data: interviewsData } = await supabase
         .from('interviews')
         .select(`*, questions:questions(score)`)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      // Fetch presentations
       const { data: presentationsData } = await supabase
         .from('presentations')
         .select(`*, panel_questions:panel_questions(score)`)
@@ -58,7 +64,6 @@ export default function DashboardPage() {
       const interviews = (interviewsData || []) as Interview[];
       const presentations = (presentationsData || []) as Presentation[];
 
-      // Calculate scores
       let totalScore = 0;
       let scoreCount = 0;
       
@@ -74,7 +79,6 @@ export default function DashboardPage() {
         });
       });
 
-      // Combine and sort recent sessions
       const allSessions = [
         ...interviews.map(i => ({ ...i, type: 'interview' as const })),
         ...presentations.map(p => ({ ...p, type: 'presentation' as const })),
@@ -98,161 +102,235 @@ export default function DashboardPage() {
   }
 
   const getScoreColor = (score: number | null) => {
-    if (!score) return 'text-gray-400';
-    if (score >= 8) return 'text-emerald-600';
-    if (score >= 6) return 'text-amber-600';
-    return 'text-red-600';
+    if (!score) return 'text-white/40';
+    if (score >= 8) return 'text-emerald-400';
+    if (score >= 6) return 'text-amber-400';
+    return 'text-red-400';
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="w-8 h-8 border-3 border-wood border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#8B5A2B] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-charcoal">Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Track your progress and keep practicing</p>
-        </div>
-        <Link href="/saphira-interview">
-          <Button className="bg-wood hover:bg-wood-dark text-white rounded-full px-5 text-sm">
-            <Plus className="w-4 h-4 mr-1.5" />
-            New Session
-          </Button>
-        </Link>
+    <div className="min-h-screen bg-[#0a0a0f] flex overflow-hidden">
+      {/* Aurora Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 opacity-40" style={{
+          background: `radial-gradient(ellipse at 20% 20%, rgba(139, 90, 43, 0.15) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(106, 27, 154, 0.1) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 50%, rgba(21, 101, 192, 0.08) 0%, transparent 60%)`
+        }} />
+        <div className="absolute w-[600px] h-[600px] rounded-full blur-[120px] opacity-20" style={{
+          background: 'linear-gradient(135deg, #8B5A2B 0%, #D2B48C 100%)', top: '10%', left: '10%', animation: 'float 20s ease-in-out infinite',
+        }} />
+        <div className="absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-15" style={{
+          background: 'linear-gradient(135deg, #6A1B9A 0%, #BA68C8 100%)', bottom: '10%', right: '10%', animation: 'float 25s ease-in-out infinite reverse',
+        }} />
       </div>
 
-      {/* Quick Start Cards */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <Link href="/saphira-interview" className="group">
-          <div className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-md hover:border-wood/20 transition-all">
-            <div className="flex items-start justify-between">
-              <div className="w-10 h-10 bg-wood rounded-lg flex items-center justify-center">
-                <Mic className="w-5 h-5 text-white" />
-              </div>
-              <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-wood transition-colors" />
+      {/* Left Sidebar */}
+      <aside className="w-64 bg-white/5 backdrop-blur-xl border-r border-white/10 flex flex-col relative z-10">
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] rounded-xl flex items-center justify-center">
+              <Mic className="w-5 h-5 text-white" />
             </div>
-            <h3 className="font-semibold text-charcoal mt-3">AI Interview</h3>
-            <p className="text-gray-500 text-xs mt-1">Practice with AI interviewers in any scenario</p>
+            <span className="text-xl font-bold text-white">Saphire</span>
           </div>
-        </Link>
-        <Link href="/presentation" className="group">
-          <div className="bg-white rounded-xl p-5 border border-gray-100 hover:shadow-md hover:border-wood/20 transition-all">
-            <div className="flex items-start justify-between">
-              <div className="w-10 h-10 bg-charcoal rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-white" />
-              </div>
-              <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-wood transition-colors" />
+        </div>
+        <nav className="flex-1 p-4 space-y-1">
+          {[
+            { icon: Home, label: 'Dashboard', active: true, href: '/dashboard' },
+            { icon: Mic, label: 'Interview', active: false, href: '/saphira-interview' },
+            { icon: Users, label: 'Presentation', active: false, href: '/presentation' },
+            { icon: BarChart3, label: 'Feedback', active: false, href: '/feedback' },
+            { icon: Settings, label: 'Settings', active: false, href: '/settings' },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={() => router.push(item.href)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                item.active 
+                  ? 'bg-white/10 text-white' 
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <item.icon className="w-5 h-5" />
+              <span className="text-sm font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col relative z-10 overflow-hidden">
+        {/* Header */}
+        <header className="h-16 border-b border-white/10 flex items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-white font-semibold">Dashboard</h1>
+              <p className="text-white/50 text-sm">Track your progress and keep practicing</p>
             </div>
-            <h3 className="font-semibold text-charcoal mt-3">Board Presentation</h3>
-            <p className="text-gray-500 text-xs mt-1">Present to a multi-persona executive panel</p>
           </div>
-        </Link>
-      </div>
-
-      {/* Stats Row */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-gray-400 text-xs mb-1">Total Sessions</p>
-          <p className="text-2xl font-bold text-charcoal">{stats.totalSessions}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-gray-400 text-xs mb-1">Average Score</p>
-          <p className={`text-2xl font-bold ${stats.avgScore ? getScoreColor(stats.avgScore) : 'text-gray-400'}`}>
-            {stats.avgScore || '-'}
-            <span className="text-sm text-gray-300 font-normal">/10</span>
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-gray-400 text-xs mb-1">This Week</p>
-          <p className="text-2xl font-bold text-charcoal">{stats.recentActivity}</p>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-charcoal text-sm">Recent Activity</h2>
-          <Link href="/feedback" className="text-wood text-xs hover:underline">
-            View all
+          <Link href="/saphira-interview">
+            <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white rounded-full text-sm font-medium hover:shadow-lg hover:shadow-[#8B5A2B]/30 transition-all">
+              <Plus className="w-4 h-4" />
+              New Session
+            </button>
           </Link>
-        </div>
-        
-        {recentSessions.length > 0 ? (
-          <div className="divide-y divide-gray-100">
-            {recentSessions.map((session: any) => (
-              <div key={session.id} className="px-5 py-3 flex items-center justify-between hover:bg-linen/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    session.type === 'interview' ? 'bg-wood/10' : 'bg-charcoal/10'
-                  }`}>
-                    {session.type === 'interview' ? (
-                      <Mic className="w-4 h-4 text-wood" />
-                    ) : (
-                      <Users className="w-4 h-4 text-charcoal" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-charcoal text-sm">
-                      {session.job_role || session.topic || 'Untitled Session'}
-                    </p>
-                    <p className="text-gray-400 text-xs">
-                      {new Date(session.created_at!).toLocaleDateString(undefined, { 
-                        month: 'short', day: 'numeric' 
-                      })}
-                    </p>
-                  </div>
-                </div>
-                {session.score && (
-                  <span className={`text-sm font-semibold ${getScoreColor(session.score)}`}>
-                    {session.score}/10
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-8 text-center">
-            <div className="w-12 h-12 bg-wood/10 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Clock className="w-6 h-6 text-wood" />
-            </div>
-            <p className="text-gray-500 text-sm mb-4">No sessions yet</p>
-            <Link href="/saphira-interview">
-              <Button className="bg-wood hover:bg-wood-dark text-white rounded-full text-sm">
-                Start Your First Session
-              </Button>
-            </Link>
-          </div>
-        )}
-      </div>
+        </header>
 
-      {/* Tips */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="bg-wood/5 rounded-xl p-4 border border-wood/10">
-          <div className="flex items-center gap-2 mb-2">
-            <Award className="w-4 h-4 text-wood" />
-            <h3 className="font-semibold text-charcoal text-sm">Practice Tip</h3>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Quick Start Cards */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Link href="/saphira-interview" className="group">
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 hover:border-[#8B5A2B]/50 transition-all">
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#8B5A2B] to-[#D2B48C] rounded-xl flex items-center justify-center">
+                      <Mic className="w-6 h-6 text-white" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-white/30 group-hover:text-[#8B5A2B] transition-colors" />
+                  </div>
+                  <h3 className="font-semibold text-white mt-4 text-lg">AI Interview</h3>
+                  <p className="text-white/50 text-sm mt-1">Practice with AI interviewers in any scenario</p>
+                </div>
+              </Link>
+              <Link href="/presentation" className="group">
+                <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 hover:border-[#8B5A2B]/50 transition-all">
+                  <div className="flex items-start justify-between">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#6A1B9A] to-[#BA68C8] rounded-xl flex items-center justify-center">
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-white/30 group-hover:text-[#8B5A2B] transition-colors" />
+                  </div>
+                  <h3 className="font-semibold text-white mt-4 text-lg">Board Presentation</h3>
+                  <p className="text-white/50 text-sm mt-1">Present to a multi-persona executive panel</p>
+                </div>
+              </Link>
+            </div>
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
+                <p className="text-white/50 text-xs mb-2 uppercase tracking-wider">Total Sessions</p>
+                <p className="text-3xl font-bold text-white">{stats.totalSessions}</p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
+                <p className="text-white/50 text-xs mb-2 uppercase tracking-wider">Average Score</p>
+                <p className={`text-3xl font-bold ${stats.avgScore ? getScoreColor(stats.avgScore) : 'text-white/40'}`}>
+                  {stats.avgScore || '-'}
+                  <span className="text-lg text-white/30 font-normal ml-1">/10</span>
+                </p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
+                <p className="text-white/50 text-xs mb-2 uppercase tracking-wider">This Week</p>
+                <p className="text-3xl font-bold text-white">{stats.recentActivity}</p>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                <h2 className="font-semibold text-white">Recent Activity</h2>
+                <Link href="/feedback" className="text-[#8B5A2B] text-sm hover:text-[#D2B48C] transition-colors">
+                  View all
+                </Link>
+              </div>
+              
+              {recentSessions.length > 0 ? (
+                <div className="divide-y divide-white/10">
+                  {recentSessions.map((session: any) => (
+                    <div key={session.id} className="px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          session.type === 'interview' 
+                            ? 'bg-[#8B5A2B]/20' 
+                            : 'bg-[#6A1B9A]/20'
+                        }`}>
+                          {session.type === 'interview' ? (
+                            <Mic className="w-5 h-5 text-[#8B5A2B]" />
+                          ) : (
+                            <Users className="w-5 h-5 text-[#6A1B9A]" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-white">
+                            {session.job_role || session.topic || 'Untitled Session'}
+                          </p>
+                          <p className="text-white/40 text-sm">
+                            {new Date(session.created_at!).toLocaleDateString(undefined, { 
+                              month: 'short', day: 'numeric', year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      {session.score && (
+                        <span className={`text-lg font-semibold ${getScoreColor(session.score)}`}>
+                          {session.score}/10
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 bg-[#8B5A2B]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-8 h-8 text-[#8B5A2B]" />
+                  </div>
+                  <p className="text-white/50 text-sm mb-4">No sessions yet</p>
+                  <Link href="/saphira-interview">
+                    <button className="px-6 py-2.5 bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white rounded-full text-sm font-medium hover:shadow-lg hover:shadow-[#8B5A2B]/30 transition-all">
+                      Start Your First Session
+                    </button>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Tips */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-[#8B5A2B]/20 rounded-xl flex items-center justify-center">
+                    <Award className="w-5 h-5 text-[#8B5A2B]" />
+                  </div>
+                  <h3 className="font-semibold text-white">Practice Tip</h3>
+                </div>
+                <p className="text-white/50 text-sm leading-relaxed">
+                  Aim for 2-3 minute answers. Concise but complete responses show confidence and clarity.
+                </p>
+              </div>
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-[#8B5A2B]/20 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-[#8B5A2B]" />
+                  </div>
+                  <h3 className="font-semibold text-white">Improvement</h3>
+                </div>
+                <p className="text-white/50 text-sm leading-relaxed">
+                  Review your feedback after each session. Small improvements compound over time.
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-gray-500 text-xs leading-relaxed">
-            Aim for 2-3 minute answers. Concise but complete responses show confidence and clarity.
-          </p>
         </div>
-        <div className="bg-wood/5 rounded-xl p-4 border border-wood/10">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-wood" />
-            <h3 className="font-semibold text-charcoal text-sm">Improvement</h3>
-          </div>
-          <p className="text-gray-500 text-xs leading-relaxed">
-            Review your feedback after each session. Small improvements compound over time.
-          </p>
-        </div>
-      </div>
+      </main>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0); }
+          25% { transform: translate(50px, -30px); }
+          50% { transform: translate(-30px, 50px); }
+          75% { transform: translate(30px, 30px); }
+        }
+      `}</style>
     </div>
   );
 }
