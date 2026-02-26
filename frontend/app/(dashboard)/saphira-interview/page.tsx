@@ -218,6 +218,7 @@ export default function SaphiraInterviewPage() {
   const lastRestartTimeRef = useRef<number>(0);
   const isStartingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const startListeningRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     sessionRef.current = session;
@@ -394,8 +395,18 @@ export default function SaphiraInterviewPage() {
       setIsLoading(false);
       setTimeout(() => startListening(), 200);
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error generating response:', err);
       setIsLoading(false);
+      // Show error in conversation
+      const errorMessage: SaphiraMessage = {
+        id: `error_${Date.now()}`,
+        sender: 'panel-member',
+        text: 'I apologize, but I encountered an error processing your response. Could you please try again?',
+        timestamp: new Date(),
+        isQuestion: true,
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setTimeout(() => startListeningRef.current(), 500);
     }
   }, [personas, speakText]);
 
@@ -451,12 +462,15 @@ export default function SaphiraInterviewPage() {
           if (isManuallyStoppedRef.current) {
             setIsListening(false);
             recognitionRef.current = null;
+            // Clear transcript display
+            setLiveTranscript('');
+            finalTranscriptRef.current = '';
             if (textToProcess && textToProcess !== lastProcessedMessageRef.current) {
               lastProcessedMessageRef.current = textToProcess;
               handleCandidateResponse(textToProcess);
             }
           } else {
-            setTimeout(() => startListening(), 150);
+            setTimeout(() => startListeningRef.current(), 150);
           }
         };
         
@@ -464,7 +478,10 @@ export default function SaphiraInterviewPage() {
       } catch {}
       isStartingRef.current = false;
     }, 50);
-  }, [handleCandidateResponse]);
+  }, []);
+  
+  // Update ref so handleCandidateResponse can call the latest version
+  startListeningRef.current = startListening;
 
   const stopListening = useCallback(() => {
     isManuallyStoppedRef.current = true;
@@ -473,6 +490,8 @@ export default function SaphiraInterviewPage() {
       recognitionRef.current = null;
     }
     setIsListening(false);
+    // Clear the live transcript display
+    setLiveTranscript('');
   }, []);
 
   const submitTranscript = useCallback(() => {
