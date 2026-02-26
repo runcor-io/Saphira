@@ -238,7 +238,7 @@ ${ctx.communication_style}
 ${ctx.key_values.join(', ')}
 
 ## Language Markers
-${Object.entries(ctx.language_markers).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
+${ctx.language_markers ? Object.entries(ctx.language_markers).map(([k, v]) => `- ${k}: ${v}`).join('\n') : ctx.pidgin_phrases ? Object.entries(ctx.pidgin_phrases).map(([k, v]) => `- ${k}: ${v}`).join('\n') : 'N/A'}
 
 ## Conversational Fillers (use naturally)
 ${ctx.conversational_fillers.join(', ')}
