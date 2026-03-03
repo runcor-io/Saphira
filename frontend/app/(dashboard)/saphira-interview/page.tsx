@@ -656,7 +656,7 @@ export default function SaphiraInterviewPage() {
         sessionContext.talkTitle = talkTitle;
         sessionContext.conferenceName = conferenceName || undefined;
         break;
-      case 'media':
+      case 'media_interview':
         sessionContext.topic = mediaTopic; // Display title
         sessionContext.mediaTopic = mediaTopic;
         sessionContext.mediaOutlet = mediaOutlet || undefined;
@@ -948,7 +948,7 @@ export default function SaphiraInterviewPage() {
                       )}
 
                       {/* Media Interview Fields */}
-                      {selectedType === 'media' && (
+                      {selectedType === 'media_interview' && (
                         <>
                           <div>
                             <label className="text-white/60 text-sm mb-2 block">Topic/Subject <span className="text-red-400">*</span></label>
@@ -1173,7 +1173,7 @@ export default function SaphiraInterviewPage() {
                       )}
                       
                       {/* Media Interview Preview */}
-                      {selectedType === 'media' && (
+                      {selectedType === 'media_interview' && (
                         <>
                           <div className="flex justify-between text-sm"><span className="text-white/50">Topic</span><span className="text-white">{mediaTopic || 'Not set'}</span></div>
                           <div className="flex justify-between text-sm"><span className="text-white/50">Media</span><span className="text-white">{mediaOutlet || 'N/A'}</span></div>
@@ -1201,7 +1201,7 @@ export default function SaphiraInterviewPage() {
                       (selectedType === 'academic_presentation' && (!thesisTitle || !fieldOfStudy)) ||
                       (selectedType === 'board_presentation' && !projectName) ||
                       (selectedType === 'conference' && !talkTitle) ||
-                      (selectedType === 'media' && !mediaTopic) ||
+                      (selectedType === 'media_interview' && !mediaTopic) ||
                       (selectedType === 'exhibition' && !startupName)
                     }
                       className="w-full py-3 bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#8B5A2B]/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
