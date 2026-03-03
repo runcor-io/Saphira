@@ -17,6 +17,22 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Experimental features for build stability
+  experimental: {
+    // Skip trailing slash handling
+    skipTrailingSlashRedirect: true,
+    // Disable certain optimizations that may cause issues
+    optimizeCss: false,
+  },
+  // Custom webpack config to handle file tracing issues
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+      };
+    }
+    return config;
+  },
 }
 
 module.exports = nextConfig
