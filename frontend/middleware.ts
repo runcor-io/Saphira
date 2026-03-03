@@ -79,6 +79,11 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   );
 
+  // Redirect root path to dashboard
+  if (request.nextUrl.pathname === '/') {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
   // Redirect unauthenticated users to login
   if (isProtectedRoute && !user) {
     const redirectUrl = new URL('/login', request.url);
