@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { 
   Mic, PhoneOff, MessageSquare, ChevronLeft, Users, Crown, TrendingUp, 
   UserCircle, Zap, Settings, BarChart3, Briefcase, Plane, GraduationCap,
-  BookOpen, Radio, Play, Plus, Trash2, User, ArrowLeft, Volume2, VolumeX
+  BookOpen, Radio, Play, Plus, Trash2, User, ArrowLeft, Volume2, VolumeX, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -23,6 +23,7 @@ import {
 import { getAllUseCases, getUseCaseConfig } from '@/lib/saphira';
 import { determinePhase, determineSector } from '@/lib/saphira/immersiveEngine';
 import { generateImmersiveResponse } from '@/lib/saphira/immersiveEngine';
+import { generateFeedback } from '@/lib/saphira/questionGenerator';
 
 // Interview types for selection
 const interviewTypes = [
@@ -191,9 +192,26 @@ export default function SaphiraInterviewPage() {
   const [selectedType, setSelectedType] = useState<UseCase>('job_interview');
   const [panelMode, setPanelMode] = useState<'default' | 'custom'>('default');
   const [customPanelists, setCustomPanelists] = useState<CustomPanelist[]>([]);
-  const [topic, setTopic] = useState('');
-  const [company, setCompany] = useState('');
   const [country, setCountry] = useState<Country>('nigeria');
+  
+  // Dynamic fields based on interview type
+  const [jobRole, setJobRole] = useState('');
+  const [company, setCompany] = useState('');
+  const [visaType, setVisaType] = useState('');
+  const [destinationCountry, setDestinationCountry] = useState('');
+  const [scholarshipName, setScholarshipName] = useState('');
+  const [university, setUniversity] = useState('');
+  const [fieldOfStudy, setFieldOfStudy] = useState('');
+  const [startupName, setStartupName] = useState('');
+  const [industry, setIndustry] = useState('');
+  const [fundingStage, setFundingStage] = useState('');
+  const [thesisTitle, setThesisTitle] = useState('');
+  const [projectName, setProjectName] = useState('');
+  const [department, setDepartment] = useState('');
+  const [talkTitle, setTalkTitle] = useState('');
+  const [conferenceName, setConferenceName] = useState('');
+  const [mediaTopic, setMediaTopic] = useState('');
+  const [mediaOutlet, setMediaOutlet] = useState('');
   
   // Interview states
   const [session, setSession] = useState<SaphiraSession | null>(null);
@@ -204,6 +222,17 @@ export default function SaphiraInterviewPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState('');
+  
+  // Feedback popup state
+  const [currentFeedback, setCurrentFeedback] = useState<{
+    score: number;
+    rating: string;
+    strengths: string[];
+    improvements: string[];
+    suggestedAnswer: string;
+  } | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [currentInput, setCurrentInput] = useState('');
   const [summary, setSummary] = useState<SessionSummary | null>(null);
   
@@ -218,7 +247,7 @@ export default function SaphiraInterviewPage() {
   const lastRestartTimeRef = useRef<number>(0);
   const isStartingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const startListeningRef = useRef<() => void>(() => {});
+  const startListeningRef = useRef<(isManualRestart?: boolean) => void>(() => {});
 
   useEffect(() => {
     sessionRef.current = session;
@@ -294,21 +323,35 @@ export default function SaphiraInterviewPage() {
   const speakWithElevenLabs = useCallback(async (text: string, voiceId: string, onEnd?: () => void) => {
     if (isMuted) { onEnd?.(); return; }
     try {
+      console.log('[Voice] Generating ElevenLabs voice for:', text.substring(0, 50) + '...', 'voiceId:', voiceId);
       const response = await fetch('/api/voice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, voiceId }),
       });
-      if (!response.ok) throw new Error('Voice synthesis failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[Voice] ElevenLabs API error:', errorData);
+        throw new Error(errorData.error || 'Voice synthesis failed');
+      }
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
+      console.log('[Voice] Audio generated, playing...');
       if (audioRef.current) {
         audioRef.current.src = audioUrl;
         audioRef.current.onended = () => { URL.revokeObjectURL(audioUrl); onEnd?.(); };
-        audioRef.current.onerror = () => { URL.revokeObjectURL(audioUrl); onEnd?.(); };
+        audioRef.current.onerror = (e) => { 
+          console.error('[Voice] Audio playback error:', e);
+          URL.revokeObjectURL(audioUrl); 
+          onEnd?.(); 
+        };
         await audioRef.current.play();
+      } else {
+        console.error('[Voice] Audio ref not available');
+        speakWithBrowserVoice(text, onEnd);
       }
-    } catch {
+    } catch (err) {
+      console.error('[Voice] ElevenLabs failed, falling back to browser:', err);
       speakWithBrowserVoice(text, onEnd);
     }
   }, [isMuted, speakWithBrowserVoice]);
@@ -316,9 +359,11 @@ export default function SaphiraInterviewPage() {
   // Speak text
   const speakText = useCallback(async (text: string, member?: PanelMember, onEnd?: () => void) => {
     if (isMuted) { onEnd?.(); return; }
+    console.log('[Voice] Speaking:', text.substring(0, 50) + '...', 'Member:', member?.name, 'VoiceId:', member?.voiceId);
     if (member?.voiceId) {
       await speakWithElevenLabs(text, member.voiceId, onEnd);
     } else {
+      console.log('[Voice] No voiceId, using browser TTS');
       speakWithBrowserVoice(text, onEnd);
     }
   }, [isMuted, speakWithBrowserVoice, speakWithElevenLabs]);
@@ -370,6 +415,31 @@ export default function SaphiraInterviewPage() {
       setSession(updatedSession);
       setMessages(updatedSession.messages);
 
+      // Generate feedback for the user's response
+      try {
+        const lastQuestion = sessionWithUserMessage.messages.slice().reverse().find(m => m.sender === 'panel-member' && m.isQuestion)?.text || '';
+        const feedback = await generateFeedback(
+          lastQuestion,
+          text,
+          currentSession.useCase,
+          currentSession.topic || 'general',
+          { usesPidgin: false, pidginPhrases: [], religiousReferences: [], hierarchyMarkers: [], familyObligations: false, mentionsGod: false, confidenceLevel: 'medium', nervousness: false, overconfidence: false, evasiveness: { isEvasive: false, type: 'none', confidence: 0 }, excessiveRespect: false }
+        );
+        // Clear any existing feedback timeout
+        if (feedbackTimeoutRef.current) {
+          clearTimeout(feedbackTimeoutRef.current);
+        }
+        setCurrentFeedback(feedback);
+        setShowFeedback(true);
+        // Auto-hide feedback after 12 seconds - use ref to prevent issues with re-renders
+        feedbackTimeoutRef.current = setTimeout(() => {
+          setShowFeedback(false);
+          feedbackTimeoutRef.current = null;
+        }, 12000);
+      } catch (err) {
+        console.error('Error generating feedback:', err);
+      }
+
       if (result.isComplete) {
         const finalSummary = generateSessionSummary(updatedSession);
         setSummary(finalSummary);
@@ -383,12 +453,19 @@ export default function SaphiraInterviewPage() {
         const member = updatedSession.panel.find(m => m.id === message.panelMemberId);
         const persona = personas.find(p => p.id === message.panelMemberId);
         
-        if (persona && member) {
-          setPersonas(prev => prev.map(p => ({ ...p, speaking: p.id === persona.id })));
+        if (member) {
+          // Update UI speaking state if persona exists
+          if (persona) {
+            setPersonas(prev => prev.map(p => ({ ...p, speaking: p.id === persona.id })));
+          }
           await delay(message.isSideRemark ? 200 : message.isPanelInteraction ? 400 : 600);
           await new Promise<void>(resolve => speakText(message.text, member, resolve));
-          setPersonas(prev => prev.map(p => ({ ...p, speaking: false })));
+          if (persona) {
+            setPersonas(prev => prev.map(p => ({ ...p, speaking: false })));
+          }
           await delay(message.isQuestion ? 500 : 300);
+        } else {
+          console.warn('[Voice] No panel member found for message:', message.panelMemberId);
         }
       }
 
@@ -411,7 +488,7 @@ export default function SaphiraInterviewPage() {
   }, [personas, speakText]);
 
   // Speech recognition
-  const startListening = useCallback(() => {
+  const startListening = useCallback((isManualRestart = false) => {
     if (!('webkitSpeechRecognition' in window)) return;
     if (isStartingRef.current) return;
     
@@ -420,6 +497,7 @@ export default function SaphiraInterviewPage() {
     lastRestartTimeRef.current = now;
     isStartingRef.current = true;
 
+    // Stop any existing recognition
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch {}
       recognitionRef.current = null;
@@ -436,8 +514,13 @@ export default function SaphiraInterviewPage() {
         
         isManuallyStoppedRef.current = false;
         submittedTextRef.current = null;
-        finalTranscriptRef.current = '';
-        setLiveTranscript('');
+        
+        // If manual restart, clear transcript completely
+        if (isManualRestart) {
+          finalTranscriptRef.current = '';
+          setLiveTranscript('');
+          lastProcessedMessageRef.current = ''; // Reset to allow fresh start
+        }
         
         recognition.onstart = () => setIsListening(true);
         
@@ -470,7 +553,12 @@ export default function SaphiraInterviewPage() {
               handleCandidateResponse(textToProcess);
             }
           } else {
-            setTimeout(() => startListeningRef.current(), 150);
+            // Auto-restart after silence timeout, but only if still listening
+            setTimeout(() => {
+              if (!isManuallyStoppedRef.current) {
+                startListeningRef.current();
+              }
+            }, 150);
           }
         };
         
@@ -523,12 +611,66 @@ export default function SaphiraInterviewPage() {
         }))
       : undefined;
 
-    const newSession = createSession(selectedType, {
-      topic: topic || undefined,
-      company: company || undefined,
-      customPanel,
-      country,
-    });
+    // Build session context based on interview type
+    // The 'topic' field is used as the display title in the header
+    const sessionContext: any = { customPanel, country };
+    
+    switch (selectedType) {
+      case 'job_interview':
+        sessionContext.topic = jobRole; // Display title
+        sessionContext.jobRole = jobRole;
+        sessionContext.company = company || undefined;
+        break;
+      case 'embassy_interview':
+        sessionContext.topic = `${visaType} Visa - ${destinationCountry}`; // Display title
+        sessionContext.visaType = visaType;
+        sessionContext.destinationCountry = destinationCountry;
+        sessionContext.purpose = fieldOfStudy || undefined;
+        break;
+      case 'scholarship_interview':
+        sessionContext.topic = scholarshipName; // Display title
+        sessionContext.scholarshipName = scholarshipName;
+        sessionContext.university = university || undefined;
+        sessionContext.fieldOfStudy = fieldOfStudy || undefined;
+        break;
+      case 'business_pitch':
+        sessionContext.topic = startupName; // Display title
+        sessionContext.startupName = startupName;
+        sessionContext.industry = industry || undefined;
+        sessionContext.fundingStage = fundingStage || undefined;
+        break;
+      case 'academic_presentation':
+        sessionContext.topic = thesisTitle; // Display title
+        sessionContext.thesisTitle = thesisTitle;
+        sessionContext.fieldOfStudy = fieldOfStudy;
+        sessionContext.university = university || undefined;
+        break;
+      case 'board_presentation':
+        sessionContext.topic = projectName; // Display title
+        sessionContext.projectName = projectName;
+        sessionContext.department = department || undefined;
+        sessionContext.company = company || undefined;
+        break;
+      case 'conference':
+        sessionContext.topic = talkTitle; // Display title
+        sessionContext.talkTitle = talkTitle;
+        sessionContext.conferenceName = conferenceName || undefined;
+        break;
+      case 'media':
+        sessionContext.topic = mediaTopic; // Display title
+        sessionContext.mediaTopic = mediaTopic;
+        sessionContext.mediaOutlet = mediaOutlet || undefined;
+        sessionContext.role = jobRole || undefined;
+        break;
+      case 'exhibition':
+        sessionContext.topic = startupName; // Display title (product name)
+        sessionContext.productName = startupName;
+        sessionContext.industry = industry || undefined;
+        sessionContext.company = company || undefined;
+        break;
+    }
+
+    const newSession = createSession(selectedType, sessionContext);
 
     setSession(newSession);
     const { messages: introMessages, updatedSession } = await startSession(newSession);
@@ -562,12 +704,33 @@ export default function SaphiraInterviewPage() {
   };
 
   const endInterview = () => {
+    // Stop all audio and speech
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    window.speechSynthesis.cancel();
+    
+    // Stop listening and prevent restart
+    isManuallyStoppedRef.current = true;
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
+    }
+    setIsListening(false);
+    
+    // Clear any pending timeouts
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+    
+    // Generate summary and switch to summary view
     if (session) {
       const finalSummary = generateSessionSummary(session);
       setSummary(finalSummary);
       setStep('summary');
     }
-    stopListening();
   };
 
   const handleSend = () => {
@@ -624,22 +787,209 @@ export default function SaphiraInterviewPage() {
                     </div>
                   </div>
 
-                  {/* Session Details */}
+                  {/* Session Details - Dynamic based on type */}
                   <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
                     <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
                       <Settings className="w-4 h-4 text-[#8B5A2B]" /> Session Details
                     </h3>
                     <div className="space-y-4">
-                      <div>
-                        <label className="text-white/60 text-sm mb-2 block">Topic</label>
-                        <input type="text" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Enter topic..."
-                          className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
-                      </div>
-                      <div>
-                        <label className="text-white/60 text-sm mb-2 block">Company/Institution (Optional)</label>
-                        <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g., Access Bank, Shell..."
-                          className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
-                      </div>
+                      {/* Job Interview Fields */}
+                      {selectedType === 'job_interview' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Job Role <span className="text-red-400">*</span></label>
+                            <input type="text" value={jobRole} onChange={(e) => setJobRole(e.target.value)} placeholder="e.g., Software Engineer, Product Manager..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Company</label>
+                            <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g., Google, Access Bank..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Embassy/Visa Interview Fields */}
+                      {selectedType === 'embassy_interview' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Visa Type <span className="text-red-400">*</span></label>
+                            <select value={visaType} onChange={(e) => setVisaType(e.target.value)}
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50 appearance-none cursor-pointer">
+                              <option value="" className="bg-[#1a1a1f]">Select visa type...</option>
+                              <option value="student" className="bg-[#1a1a1f]">Student Visa</option>
+                              <option value="work" className="bg-[#1a1a1f]">Work Visa</option>
+                              <option value="business" className="bg-[#1a1a1f]">Business Visa</option>
+                              <option value="tourist" className="bg-[#1a1a1f]">Tourist Visa</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Destination Country <span className="text-red-400">*</span></label>
+                            <input type="text" value={destinationCountry} onChange={(e) => setDestinationCountry(e.target.value)} placeholder="e.g., USA, UK, Canada..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Purpose of Visit</label>
+                            <input type="text" value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)} placeholder="e.g., Masters in Computer Science, Business conference..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Scholarship Interview Fields */}
+                      {selectedType === 'scholarship_interview' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Scholarship/Program <span className="text-red-400">*</span></label>
+                            <input type="text" value={scholarshipName} onChange={(e) => setScholarshipName(e.target.value)} placeholder="e.g., Mastercard Foundation, Chevening..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">University/Institution</label>
+                            <input type="text" value={university} onChange={(e) => setUniversity(e.target.value)} placeholder="e.g., University of Ibadan, MIT..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Field of Study</label>
+                            <input type="text" value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)} placeholder="e.g., Medicine, Engineering, Law..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Business Pitch Fields */}
+                      {selectedType === 'business_pitch' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Startup/Product Name <span className="text-red-400">*</span></label>
+                            <input type="text" value={startupName} onChange={(e) => setStartupName(e.target.value)} placeholder="e.g., Saphira, FarmPay..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Industry/Sector</label>
+                            <input type="text" value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g., Fintech, Agritech, Healthtech..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Funding Stage</label>
+                            <select value={fundingStage} onChange={(e) => setFundingStage(e.target.value)}
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50 appearance-none cursor-pointer">
+                              <option value="" className="bg-[#1a1a1f]">Select stage...</option>
+                              <option value="pre-seed" className="bg-[#1a1a1f]">Pre-seed</option>
+                              <option value="seed" className="bg-[#1a1a1f]">Seed</option>
+                              <option value="series-a" className="bg-[#1a1a1f]">Series A</option>
+                              <option value="series-b" className="bg-[#1a1a1f]">Series B+</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Academic Presentation Fields */}
+                      {selectedType === 'academic_presentation' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Thesis/Paper Title <span className="text-red-400">*</span></label>
+                            <input type="text" value={thesisTitle} onChange={(e) => setThesisTitle(e.target.value)} placeholder="e.g., AI in Healthcare: A Nigerian Perspective..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Field of Study <span className="text-red-400">*</span></label>
+                            <input type="text" value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)} placeholder="e.g., Computer Science, Sociology..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">University/Institution</label>
+                            <input type="text" value={university} onChange={(e) => setUniversity(e.target.value)} placeholder="e.g., University of Lagos..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Board Presentation Fields */}
+                      {selectedType === 'board_presentation' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Project/Initiative <span className="text-red-400">*</span></label>
+                            <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="e.g., Q4 Marketing Strategy, New Product Launch..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Department</label>
+                            <input type="text" value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="e.g., Marketing, Engineering, Operations..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Company</label>
+                            <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g., GTBank, Andela..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Conference Presentation Fields */}
+                      {selectedType === 'conference' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Talk Title <span className="text-red-400">*</span></label>
+                            <input type="text" value={talkTitle} onChange={(e) => setTalkTitle(e.target.value)} placeholder="e.g., The Future of Fintech in Africa..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Conference Name</label>
+                            <input type="text" value={conferenceName} onChange={(e) => setConferenceName(e.target.value)} placeholder="e.g., Techpoint Africa, Lagos Tech Fest..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Topic/Field</label>
+                            <input type="text" value={fieldOfStudy} onChange={(e) => setFieldOfStudy(e.target.value)} placeholder="e.g., Blockchain, AI, Climate Tech..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Media Interview Fields */}
+                      {selectedType === 'media' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Topic/Subject <span className="text-red-400">*</span></label>
+                            <input type="text" value={mediaTopic} onChange={(e) => setMediaTopic(e.target.value)} placeholder="e.g., Youth Unemployment, Tech Innovation..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Media Outlet</label>
+                            <input type="text" value={mediaOutlet} onChange={(e) => setMediaOutlet(e.target.value)} placeholder="e.g., Channels TV, TechCrunch, Arise News..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Your Role/Expertise</label>
+                            <input type="text" value={jobRole} onChange={(e) => setJobRole(e.target.value)} placeholder="e.g., CEO, Policy Expert, Activist..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Exhibition/Trade Show - reuse startup fields */}
+                      {selectedType === 'exhibition' && (
+                        <>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Product/Service <span className="text-red-400">*</span></label>
+                            <input type="text" value={startupName} onChange={(e) => setStartupName(e.target.value)} placeholder="e.g., Smart Farm Solution, Solar Power Kit..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Industry</label>
+                            <input type="text" value={industry} onChange={(e) => setIndustry(e.target.value)} placeholder="e.g., Agriculture, Energy, Manufacturing..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                          <div>
+                            <label className="text-white/60 text-sm mb-2 block">Company Name</label>
+                            <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="e.g., GreenTech Nigeria..."
+                              className="w-full px-4 py-3 bg-white/10 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#8B5A2B]/50" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Country Context - shown for all types */}
                       <div>
                         <label className="text-white/60 text-sm mb-2 block">Country Context</label>
                         <select value={country} onChange={(e) => setCountry(e.target.value as Country)}
@@ -759,12 +1109,101 @@ export default function SaphiraInterviewPage() {
                     <h3 className="text-white font-semibold mb-4">Session Preview</h3>
                     <div className="space-y-4 mb-6">
                       <div className="flex justify-between text-sm"><span className="text-white/50">Type</span><span className="text-white">{selectedTypeData?.title}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-white/50">Topic</span><span className="text-white">{topic || 'Not set'}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-white/50">Company</span><span className="text-white">{company || 'Not set'}</span></div>
+                      
+                      {/* Job Interview Preview */}
+                      {selectedType === 'job_interview' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Job Role</span><span className="text-white">{jobRole || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Company</span><span className="text-white">{company || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Embassy/Visa Preview */}
+                      {selectedType === 'embassy_interview' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Visa Type</span><span className="text-white capitalize">{visaType || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Destination</span><span className="text-white">{destinationCountry || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Purpose</span><span className="text-white">{fieldOfStudy || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Scholarship Preview */}
+                      {selectedType === 'scholarship_interview' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Scholarship</span><span className="text-white">{scholarshipName || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">University</span><span className="text-white">{university || 'N/A'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Field</span><span className="text-white">{fieldOfStudy || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Business Pitch Preview */}
+                      {selectedType === 'business_pitch' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Startup</span><span className="text-white">{startupName || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Industry</span><span className="text-white">{industry || 'N/A'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Stage</span><span className="text-white capitalize">{fundingStage || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Academic Presentation Preview */}
+                      {selectedType === 'academic_presentation' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Thesis</span><span className="text-white">{thesisTitle || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Field</span><span className="text-white">{fieldOfStudy || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">University</span><span className="text-white">{university || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Board Presentation Preview */}
+                      {selectedType === 'board_presentation' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Project</span><span className="text-white">{projectName || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Department</span><span className="text-white">{department || 'N/A'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Company</span><span className="text-white">{company || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Conference Preview */}
+                      {selectedType === 'conference' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Talk Title</span><span className="text-white">{talkTitle || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Conference</span><span className="text-white">{conferenceName || 'N/A'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Topic</span><span className="text-white">{fieldOfStudy || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Media Interview Preview */}
+                      {selectedType === 'media' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Topic</span><span className="text-white">{mediaTopic || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Media</span><span className="text-white">{mediaOutlet || 'N/A'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Role</span><span className="text-white">{jobRole || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
+                      {/* Exhibition Preview */}
+                      {selectedType === 'exhibition' && (
+                        <>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Product</span><span className="text-white">{startupName || 'Not set'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Industry</span><span className="text-white">{industry || 'N/A'}</span></div>
+                          <div className="flex justify-between text-sm"><span className="text-white/50">Company</span><span className="text-white">{company || 'N/A'}</span></div>
+                        </>
+                      )}
+                      
                       <div className="flex justify-between text-sm"><span className="text-white/50">Country</span><span className="text-white">{country}</span></div>
                       <div className="flex justify-between text-sm"><span className="text-white/50">Panel Size</span><span className="text-white">{panelMode === 'default' ? '4' : customPanelists.length}</span></div>
                     </div>
-                    <button onClick={startInterview} disabled={!topic}
+                    <button onClick={startInterview} disabled={
+                      (selectedType === 'job_interview' && !jobRole) ||
+                      (selectedType === 'embassy_interview' && (!visaType || !destinationCountry)) ||
+                      (selectedType === 'scholarship_interview' && !scholarshipName) ||
+                      (selectedType === 'business_pitch' && !startupName) ||
+                      (selectedType === 'academic_presentation' && (!thesisTitle || !fieldOfStudy)) ||
+                      (selectedType === 'board_presentation' && !projectName) ||
+                      (selectedType === 'conference' && !talkTitle) ||
+                      (selectedType === 'media' && !mediaTopic) ||
+                      (selectedType === 'exhibition' && !startupName)
+                    }
                       className="w-full py-3 bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#8B5A2B]/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                       <Play className="w-5 h-5" /> Start Session
                     </button>
@@ -789,7 +1228,7 @@ export default function SaphiraInterviewPage() {
               </button>
               <div>
                 <h1 className="text-white font-semibold">{session.useCase === 'board_presentation' ? 'Executive Panel' : 'Interview Panel'}</h1>
-                <p className="text-white/50 text-sm">{topic || 'Practice Session'}</p>
+                <p className="text-white/50 text-sm">{session?.topic || 'Practice Session'}</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -806,6 +1245,68 @@ export default function SaphiraInterviewPage() {
               <span className="text-white/50 text-sm">{personas.length} Panelists</span>
             </div>
           </header>
+
+          {/* Feedback Popup */}
+          {showFeedback && currentFeedback && (
+            <div className="absolute top-20 right-6 z-50 w-96 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-5 animate-in slide-in-from-right duration-300">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-white font-semibold flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-[#8B5A2B]" />
+                    Performance Feedback
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-2xl font-bold ${currentFeedback.score >= 7 ? 'text-green-400' : currentFeedback.score >= 5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                      {currentFeedback.score}/10
+                    </span>
+                    <span className="text-white/60 text-sm">{currentFeedback.rating}</span>
+                  </div>
+                </div>
+                <button onClick={() => {
+                  if (feedbackTimeoutRef.current) {
+                    clearTimeout(feedbackTimeoutRef.current);
+                    feedbackTimeoutRef.current = null;
+                  }
+                  setShowFeedback(false);
+                }} className="text-white/40 hover:text-white/80 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {currentFeedback.strengths.length > 0 && (
+                  <div>
+                    <h4 className="text-white/80 text-sm font-medium mb-2 flex items-center gap-1">
+                      <span className="text-green-400">✓</span> Strengths
+                    </h4>
+                    <ul className="space-y-1">
+                      {currentFeedback.strengths.slice(0, 2).map((s, i) => (
+                        <li key={i} className="text-white/70 text-xs pl-4 border-l-2 border-green-400/30">{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {currentFeedback.improvements.length > 0 && (
+                  <div>
+                    <h4 className="text-white/80 text-sm font-medium mb-2 flex items-center gap-1">
+                      <span className="text-yellow-400">↑</span> Improvements
+                    </h4>
+                    <ul className="space-y-1">
+                      {currentFeedback.improvements.slice(0, 2).map((imp, i) => (
+                        <li key={i} className="text-white/70 text-xs pl-4 border-l-2 border-yellow-400/30">{imp}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                <div className="pt-3 border-t border-white/10">
+                  <h4 className="text-white/80 text-sm font-medium mb-2">Suggested Response:</h4>
+                  <p className="text-white/60 text-xs italic leading-relaxed">"{currentFeedback.suggestedAnswer}"</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Content Area */}
           <div className="flex-1 flex overflow-hidden">
@@ -843,7 +1344,7 @@ export default function SaphiraInterviewPage() {
 
               {/* Start Speaking Button */}
               <div className="flex justify-center mb-6">
-                <button onClick={() => isListening ? stopListening() : startListening()}
+                <button onClick={() => isListening ? stopListening() : startListening(true)}
                   className={`flex items-center gap-3 px-8 py-4 rounded-full font-semibold transition-all ${isListening ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/30' : 'bg-gradient-to-r from-[#8B5A2B] to-[#D2B48C] text-white shadow-lg shadow-[#8B5A2B]/30 hover:shadow-[#8B5A2B]/50'}`}>
                   <Mic className="w-5 h-5" />
                   {isListening ? 'Stop Speaking' : 'Start Speaking'}
@@ -980,7 +1481,30 @@ export default function SaphiraInterviewPage() {
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => { setStep('setup'); setSession(null); setMessages([]); setSummary(null); setTopic(''); setCompany(''); }}
+              <button onClick={() => { 
+                setStep('setup'); 
+                setSession(null); 
+                setMessages([]); 
+                setSummary(null);
+                // Reset all form fields
+                setJobRole('');
+                setCompany('');
+                setVisaType('');
+                setDestinationCountry('');
+                setFieldOfStudy('');
+                setScholarshipName('');
+                setUniversity('');
+                setStartupName('');
+                setIndustry('');
+                setFundingStage('');
+                setThesisTitle('');
+                setProjectName('');
+                setDepartment('');
+                setTalkTitle('');
+                setConferenceName('');
+                setMediaTopic('');
+                setMediaOutlet('');
+              }}
                 className="flex-1 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all">
                 Start New Interview
               </button>
