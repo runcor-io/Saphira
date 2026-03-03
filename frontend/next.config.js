@@ -17,6 +17,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Output configuration for Vercel
+  output: 'standalone',
+  distDir: '.next',
+  // Ensure proper trailing slashes
+  trailingSlash: false,
 }
 
 module.exports = nextConfig
