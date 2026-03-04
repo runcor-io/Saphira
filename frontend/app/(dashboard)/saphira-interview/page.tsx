@@ -489,20 +489,37 @@ export default function SaphiraInterviewPage() {
 
   // Speech recognition
   const startListening = useCallback((isManualRestart = false) => {
-    if (!('webkitSpeechRecognition' in window)) return;
-    if (isStartingRef.current) return;
+    if (!('webkitSpeechRecognition' in window)) {
+      console.error('[Speech] Web Speech API not supported');
+      return;
+    }
     
+    // Prevent concurrent starts
+    if (isStartingRef.current) {
+      console.log('[Speech] Already starting, skipping...');
+      return;
+    }
+    
+    // Throttle rapid restarts
     const now = Date.now();
-    if (now - lastRestartTimeRef.current < 100) return;
+    if (now - lastRestartTimeRef.current < 300) {
+      console.log('[Speech] Throttled, too soon');
+      return;
+    }
     lastRestartTimeRef.current = now;
     isStartingRef.current = true;
 
-    // Stop any existing recognition
+    // Stop any existing recognition cleanly
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch {}
+      try { 
+        recognitionRef.current.stop(); 
+      } catch (e) {
+        console.log('[Speech] Error stopping previous:', e);
+      }
       recognitionRef.current = null;
     }
 
+    // Use setTimeout to allow UI to update
     setTimeout(() => {
       try {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -519,10 +536,14 @@ export default function SaphiraInterviewPage() {
         if (isManualRestart) {
           finalTranscriptRef.current = '';
           setLiveTranscript('');
-          lastProcessedMessageRef.current = ''; // Reset to allow fresh start
+          lastProcessedMessageRef.current = '';
         }
         
-        recognition.onstart = () => setIsListening(true);
+        recognition.onstart = () => {
+          console.log('[Speech] Recognition started');
+          isStartingRef.current = false; // Reset so we can restart if needed
+          setIsListening(true);
+        };
         
         recognition.onresult = (event: any) => {
           let interim = '';
@@ -536,9 +557,14 @@ export default function SaphiraInterviewPage() {
           setLiveTranscript(finalTranscriptRef.current + interim);
         };
         
-        recognition.onerror = () => {};
+        recognition.onerror = (event: any) => {
+          console.error('[Speech] Error:', event.error);
+          // Reset starting flag on error
+          isStartingRef.current = false;
+        };
         
         recognition.onend = () => {
+          console.log('[Speech] Recognition ended, manually stopped:', isManuallyStoppedRef.current);
           const textToProcess = submittedTextRef.current || finalTranscriptRef.current.trim();
           submittedTextRef.current = null;
           
@@ -556,16 +582,20 @@ export default function SaphiraInterviewPage() {
             // Auto-restart after silence timeout, but only if still listening
             setTimeout(() => {
               if (!isManuallyStoppedRef.current) {
+                console.log('[Speech] Auto-restarting...');
                 startListeningRef.current();
               }
-            }, 150);
+            }, 300);
           }
         };
         
         recognition.start();
-      } catch {}
-      isStartingRef.current = false;
-    }, 50);
+      } catch (err) {
+        console.error('[Speech] Failed to start:', err);
+        isStartingRef.current = false;
+        setIsListening(false);
+      }
+    }, 100);
   }, []);
   
   // Update ref so handleCandidateResponse can call the latest version
