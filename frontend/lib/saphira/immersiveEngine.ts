@@ -133,6 +133,86 @@ function getUseCaseReminder(useCase: UseCase): string {
   }
 }
 
+/**
+ * Get example questions appropriate for each use case
+ */
+function getUseCaseExamples(useCase: UseCase): string {
+  switch (useCase) {
+    case 'job_interview':
+      return `- "Why are you interested in this role?"
+- "Tell me about your experience with [skill they mentioned]."
+- "What is your greatest strength?"
+- "Where do you see yourself in 5 years?"
+- "Why should we hire you?"`;
+
+    case 'business_pitch':
+      return `- "What's your business model? How do you make money?"
+- "How many customers do you currently have?"
+- "What's your revenue so far?"
+- "Who are your main competitors?"
+- "How will you use this investment?"
+- "What's your go-to-market strategy?"
+- "How big is your total addressable market?"`;
+
+    case 'embassy_interview':
+      return `- "Why do you want to visit our country?"
+- "How long will you be staying?"
+- "Who is funding your trip?"
+- "Do you have family or friends there?"
+- "What is your occupation in your home country?"
+- "When do you plan to return?"
+- "What ties do you have to your home country?"`;
+
+    case 'scholarship_interview':
+      return `- "Why do you deserve this scholarship?"
+- "What are your academic achievements?"
+- "How will you give back to your community after your studies?"
+- "What are your career goals?"
+- "Tell me about a leadership role you've held."
+- "Why did you choose this field of study?"`;
+
+    case 'academic_presentation':
+      return `- "What is your main research question?"
+- "How did you collect your data?"
+- "What are the limitations of your study?"
+- "How does this contribute to existing knowledge?"
+- "What methodology did you use and why?"
+- "What are your key findings?"`;
+
+    case 'board_presentation':
+      return `- "What is the expected ROI on this proposal?"
+- "What are the main risks?"
+- "How does this align with our company strategy?"
+- "What resources do you need?"
+- "What's the implementation timeline?"
+- "How will we measure success?"`;
+
+    case 'conference':
+      return `- "Can you elaborate on [point they made]?"
+- "How does this apply to [industry]?"
+- "What are the practical implications?"
+- "What are your next steps in this research?"
+- "How does this compare to existing approaches?"`;
+
+    case 'exhibition':
+      return `- "What does this product do exactly?"
+- "How much does it cost?"
+- "Who is your target customer?"
+- "How is this different from [competitor]?"
+- "Can you show me a demo?"`;
+
+    case 'media_interview':
+      return `- "Can you respond to allegations that...?"
+- "Why did you decide to...?"
+- "What would you say to critics who claim...?"
+- "How do you respond to those who say...?"
+- "What's your position on [controversial topic]?"`;
+
+    default:
+      return `- Ask relevant follow-up questions based on what they said`;
+  }
+}
+
 interface ConversationContext {
   topic: string;
   sector?: string;
@@ -299,56 +379,25 @@ export async function generateImmersiveResponse(
   
   const useCaseReminder = getUseCaseReminder(session.useCase);
   
-  // Analyze candidate response quality
-  const responseQuality = candidateResponse.split(' ').length < 20 ? 'very_short' : 
-                          candidateResponse.includes('umm') || candidateResponse.includes('uh') ? 'hesitant' :
-                          candidateResponse.split('.').length < 3 ? 'brief' : 'detailed';
+  // Get useCase-specific examples
+  const useCaseExamples = getUseCaseExamples(session.useCase);
   
-  const qualityGuidance = responseQuality === 'hesitant' ? `
-⚠️ CANDIDATE RESPONSE QUALITY: The candidate's response was hesitant with many filler words ("umm", "uh").
-Your response should:
-- Acknowledge their nervousness professionally
-- Ask them to clarify ONE specific point they mentioned
-- Help them focus by asking a direct question
-Example: "I can see you're passionate about this. Let me help you focus - you mentioned [specific thing]. Can you explain that more clearly?"` :
-responseQuality === 'very_short' ? `
-⚠️ CANDIDATE RESPONSE QUALITY: The candidate's response was very short.
-Your response should:
-- Ask them to elaborate significantly
-- Request specific details, numbers, or examples` : '';
-
-  const prompt = `${systemPrompt}
-
-${conversationContext}
-${qualityGuidance}
-
-⚠️ CRITICAL RULES - READ CAREFULLY:
-1. You MUST reference something SPECIFIC the candidate just said
-2. NEVER ask generic questions like "How did you handle that situation?" unless they specifically described a situation
-3. If they asked "I don't understand" or "Come again", CLARIFY your previous question - don't ask a new unrelated question
-4. Your response MUST show you were listening to THEIR specific words
-
-BAD EXAMPLES (NEVER DO THESE):
-- "How did you handle that situation?" (when no situation was mentioned)
-- "Tell me more about your experience" (too vague)
-- "Walk me through that" (when "that" is unclear)
-- Asking a completely new topic when they asked for clarification
-
-GOOD EXAMPLES (DO THESE):
-- "You mentioned you studied in both Turkey and China - that's unusual. How does that international background help your business?"
-- "I didn't quite follow - are you saying Runecorp rents out computers to startups? Explain that business model."
-- "You said you have two certifications from Robotics Nigeria. What specific skills did you gain from those?"
-
-YOUR TASK:
+  const prompt = `## YOUR ROLE
 You are ${speakingMember.name}, ${speakingMember.role}.
-Your personality: ${speakingMember.personality}
+Context: ${useCaseConfig}
 
-Read the candidate's response above and:
-1. Quote ONE specific thing they said (word-for-word if possible)
-2. Ask a follow-up question directly related to that thing
-3. If they asked for clarification, explain your previous question in simpler terms
+## CONVERSATION HISTORY
+${conversationContext}
 
+## EXAMPLES OF APPROPRIATE QUESTIONS FOR THIS CONTEXT:
+${useCaseExamples}
+
+## YOUR TASK
 The candidate just said: "${candidateResponse}"
+
+Respond naturally as ${speakingMember.name}. Pick ONE specific thing they mentioned and ask about it.
+
+${candidateResponse.toLowerCase().includes('come again') || candidateResponse.toLowerCase().includes('don\'t understand') ? 'IMPORTANT: The candidate asked for clarification. RESTATE your previous question in simpler terms - do NOT ask a completely new question.' : ''}
 
 Respond as ${speakingMember.name}:`;
 
