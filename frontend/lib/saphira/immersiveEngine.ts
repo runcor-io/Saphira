@@ -436,7 +436,28 @@ function validateResponse(
   const lowerResponse = aiResponse.toLowerCase();
   const lowerCandidate = candidateResponse.toLowerCase();
   
-  // Check for generic disconnected questions
+  // FORBIDDEN QUESTIONS - Block these completely
+  const forbiddenQuestions = [
+    /why are you interested in this role/i,
+    /why do you want this role/i,
+    /what interests you about this position/i,
+    /why this role/i,
+    /why are you applying for this position/i,
+  ];
+  
+  // These questions are ONLY allowed in job interviews
+  if (useCase !== 'job_interview') {
+    for (const pattern of forbiddenQuestions) {
+      if (pattern.test(aiResponse)) {
+        return { 
+          isValid: false, 
+          reason: `asked_job_question_in_${useCase}: "${aiResponse.substring(0, 50)}..."` 
+        };
+      }
+    }
+  }
+  
+  // Check for other generic disconnected questions
   const badPatterns = [
     /how did you handle that situation/i,
     /what was the outcome/i,
@@ -500,30 +521,73 @@ async function generateContextualFallback(
   reason: string
 ): Promise<string> {
   // Extract key info from candidate response
-  const hasCompany = /runcorp|runcub|company|startup/i.test(candidateResponse);
-  const hasEducation = /university|degree|graduated|studied|beijing|turkey|alicia/i.test(candidateResponse);
-  const hasBusiness = /computing|platform|provider|contractor|device/i.test(candidateResponse);
+  const hasCompany = /runcorp|runcub|company|startup|business/i.test(candidateResponse);
+  const hasEducation = /university|degree|graduated|studied|beijing|turkey|alicia|school/i.test(candidateResponse);
+  const hasProduct = /product|service|platform|app|software/i.test(candidateResponse);
+  const hasNumbers = /\d+/.test(candidateResponse);
   
   const fallbackResponses: string[] = [];
   
-  if (useCase === 'business_pitch') {
-    if (hasCompany) {
-      fallbackResponses.push(`Let me make sure I understand - you mentioned ${candidateResponse.match(/(runcorp|runcub)/i)?.[0] || 'your company'}. Can you explain exactly how your business model works? Who pays who?`);
-    }
-    if (hasEducation) {
-      fallbackResponses.push(`You studied in both Turkey and China - that's interesting. How does that international background give you an advantage in the African market?`);
-    }
-    if (hasBusiness) {
-      fallbackResponses.push(`I want to understand your platform better. You said you connect providers to contractors. How many providers do you currently have signed up?`);
-    }
-  }
+  // Get first sentence of candidate response for reference
+  const firstSentence = candidateResponse.split('.')[0].substring(0, 60);
   
-  // Generic contextual fallbacks
-  if (fallbackResponses.length === 0) {
+  if (useCase === 'business_pitch') {
     fallbackResponses.push(
-      `Let me focus on something you mentioned. Can you tell me more about ${candidateResponse.split('.')[0].substring(0, 50)}?`,
-      `I didn't quite follow. Can you explain what you mean by that in simpler terms?`,
-      `That's interesting. Can you give me a specific example of what you're describing?`
+      `Let me make sure I understand your business. You mentioned "${firstSentence}". Can you explain exactly how you make money?`,
+      `I want to understand your business model better. Who are your customers and how much do they pay?`,
+      `That's interesting. How many users or customers do you currently have?`,
+      `What problem are you solving, and how big is that problem in the market?`,
+      `Who are your main competitors, and what makes you different from them?`
+    );
+  } else if (useCase === 'embassy_interview') {
+    fallbackResponses.push(
+      `Why do you want to visit our country specifically?`,
+      `How long do you plan to stay, and where will you be staying?`,
+      `Who is paying for this trip?`,
+      `What ties do you have to your home country that will ensure you return?`,
+      `What do you do for work, and how long have you been doing it?`
+    );
+  } else if (useCase === 'scholarship_interview') {
+    fallbackResponses.push(
+      `Why do you deserve this scholarship over other applicants?`,
+      `What are your academic achievements so far?`,
+      `How will this scholarship help you achieve your career goals?`,
+      `What leadership roles have you taken in your community?`,
+      `How do you plan to give back to your community after your studies?`
+    );
+  } else if (useCase === 'academic_presentation') {
+    fallbackResponses.push(
+      `What is your main research question?`,
+      `How did you collect your data?`,
+      `What are the limitations of your study?`,
+      `How does your research contribute to existing knowledge?`,
+      `What methodology did you use, and why?`
+    );
+  } else if (useCase === 'board_presentation') {
+    fallbackResponses.push(
+      `What is the expected return on investment?`,
+      `What are the main risks, and how do you plan to mitigate them?`,
+      `How does this align with our company's strategy?`,
+      `What resources do you need, and what is the timeline?`,
+      `What metrics will you use to measure success?`
+    );
+  } else if (useCase === 'job_interview') {
+    // Only for job interviews - these questions are appropriate
+    fallbackResponses.push(
+      `Why are you interested in this role?`,
+      `Tell me about your relevant experience for this position.`,
+      `What makes you a good fit for our company?`,
+      `Where do you see yourself in 5 years?`,
+      `What is your expected salary?`
+    );
+  } else {
+    // Generic fallbacks for other use cases
+    fallbackResponses.push(
+      `Let me focus on something you mentioned. Can you tell me more about "${firstSentence}"?`,
+      `I didn't quite follow. Can you explain what you mean in simpler terms?`,
+      `That's interesting. Can you give me a specific example?`,
+      `How does that work exactly?`,
+      `Why is that important?`
     );
   }
   
