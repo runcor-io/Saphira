@@ -299,30 +299,56 @@ export async function generateImmersiveResponse(
   
   const useCaseReminder = getUseCaseReminder(session.useCase);
   
+  // Analyze candidate response quality
+  const responseQuality = candidateResponse.split(' ').length < 20 ? 'very_short' : 
+                          candidateResponse.includes('umm') || candidateResponse.includes('uh') ? 'hesitant' :
+                          candidateResponse.split('.').length < 3 ? 'brief' : 'detailed';
+  
+  const qualityGuidance = responseQuality === 'hesitant' ? `
+⚠️ CANDIDATE RESPONSE QUALITY: The candidate's response was hesitant with many filler words ("umm", "uh").
+Your response should:
+- Acknowledge their nervousness professionally
+- Ask them to clarify ONE specific point they mentioned
+- Help them focus by asking a direct question
+Example: "I can see you're passionate about this. Let me help you focus - you mentioned [specific thing]. Can you explain that more clearly?"` :
+responseQuality === 'very_short' ? `
+⚠️ CANDIDATE RESPONSE QUALITY: The candidate's response was very short.
+Your response should:
+- Ask them to elaborate significantly
+- Request specific details, numbers, or examples` : '';
+
   const prompt = `${systemPrompt}
 
 ${conversationContext}
+${qualityGuidance}
 
-⚠️ REMEMBER: This is a ${session.useCase.replace('_', ' ').toUpperCase()}
-${useCaseReminder}
+⚠️ CRITICAL RULES - READ CAREFULLY:
+1. You MUST reference something SPECIFIC the candidate just said
+2. NEVER ask generic questions like "How did you handle that situation?" unless they specifically described a situation
+3. If they asked "I don't understand" or "Come again", CLARIFY your previous question - don't ask a new unrelated question
+4. Your response MUST show you were listening to THEIR specific words
 
-INSTRUCTIONS FOR NEXT RESPONSE:
+BAD EXAMPLES (NEVER DO THESE):
+- "How did you handle that situation?" (when no situation was mentioned)
+- "Tell me more about your experience" (too vague)
+- "Walk me through that" (when "that" is unclear)
+- Asking a completely new topic when they asked for clarification
+
+GOOD EXAMPLES (DO THESE):
+- "You mentioned you studied in both Turkey and China - that's unusual. How does that international background help your business?"
+- "I didn't quite follow - are you saying Runecorp rents out computers to startups? Explain that business model."
+- "You said you have two certifications from Robotics Nigeria. What specific skills did you gain from those?"
+
+YOUR TASK:
 You are ${speakingMember.name}, ${speakingMember.role}.
 Your personality: ${speakingMember.personality}
 
-YOUR TASK: Respond to what the candidate JUST said. You MUST:
-1. Pick ONE specific thing from their response (a company name, a technology, a claim, an experience)
-2. Ask a follow-up question about THAT specific thing
-3. If they were vague about something, ask for clarification
-4. Show genuine curiosity - don't just move to the next topic
-5. Ask questions APPROPRIATE for a ${session.useCase.replace('_', ' ')}
-
-BAD EXAMPLE (don't do this): "What are your strengths?" or "Tell me about your experience" (unless this is a job interview)
-GOOD EXAMPLE (do this): "You mentioned Beijing Institute of Technology - how does studying in China give you an edge in this market?" or "You said Runcore helps people rent devices - how many users do you currently have?"
+Read the candidate's response above and:
+1. Quote ONE specific thing they said (word-for-word if possible)
+2. Ask a follow-up question directly related to that thing
+3. If they asked for clarification, explain your previous question in simpler terms
 
 The candidate just said: "${candidateResponse}"
-
-Pick something interesting from that response and ask about it. Be specific.
 
 Respond as ${speakingMember.name}:`;
 
