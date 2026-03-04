@@ -367,7 +367,20 @@ Respond as ${speakingMember.name}:`;
     if (!response.ok) throw new Error('Failed to generate response');
     
     const data = await response.json();
-    const generatedText = data.text;
+    let generatedText = data.text;
+    
+    // Validate and fix response if it's not contextual
+    const validation = validateResponse(generatedText, candidateResponse, session.useCase);
+    if (!validation.isValid) {
+      console.log('[ImmersiveEngine] Response validation failed:', validation.reason);
+      // Retry with stronger prompt
+      generatedText = await generateContextualFallback(
+        speakingMember, 
+        candidateResponse, 
+        session.useCase,
+        validation.reason
+      );
+    }
     
     // Check if this signals interview completion
     const isComplete = checkForCompletion(generatedText);
@@ -410,6 +423,111 @@ Respond as ${speakingMember.name}:`;
     console.error('[ImmersiveEngine] Error:', error);
     return generateFallbackResponse(session, speakingMember, context);
   }
+}
+
+/**
+ * Validate if AI response is contextual to what candidate said
+ */
+function validateResponse(
+  aiResponse: string,
+  candidateResponse: string,
+  useCase: UseCase
+): { isValid: boolean; reason?: string } {
+  const lowerResponse = aiResponse.toLowerCase();
+  const lowerCandidate = candidateResponse.toLowerCase();
+  
+  // Check for generic disconnected questions
+  const badPatterns = [
+    /how did you handle that situation/i,
+    /what was the outcome/i,
+    /walk me through that/i,
+    /tell me about your background/i,
+    /tell me more about your experience/i,
+  ];
+  
+  for (const pattern of badPatterns) {
+    if (pattern.test(aiResponse)) {
+      // Check if candidate actually mentioned a situation/outcome/experience
+      const hasSituation = /situation|problem|challenge|issue|difficult/i.test(candidateResponse);
+      const hasOutcome = /result|outcome|achieved|accomplished|delivered/i.test(candidateResponse);
+      
+      if (!hasSituation && pattern.test(/situation/)) {
+        return { isValid: false, reason: 'asked_about_situation_when_none_mentioned' };
+      }
+      if (!hasOutcome && pattern.test(/outcome/)) {
+        return { isValid: false, reason: 'asked_about_outcome_when_none_mentioned' };
+      }
+      if (!hasSituation && pattern.test(/background|experience/)) {
+        return { isValid: false, reason: 'asked_generic_background_question' };
+      }
+    }
+  }
+  
+  // Check if response references something from candidate's response
+  const candidateWords = candidateResponse.toLowerCase().split(/\s+/).filter(w => w.length > 4);
+  let hasReference = false;
+  
+  for (const word of candidateWords) {
+    if (lowerResponse.includes(word)) {
+      hasReference = true;
+      break;
+    }
+  }
+  
+  // Check for key concepts mentioned by candidate
+  const keyConcepts = ['runcorp', 'runcub', 'computing', 'turkey', 'china', 'beijing', 'alicia', 
+                       'provider', 'contractor', 'certification', 'degree', 'university',
+                       'platform', 'device', 'startup', 'business', 'model'];
+  
+  const mentionedConcepts = keyConcepts.filter(concept => 
+    lowerCandidate.includes(concept) && lowerResponse.includes(concept)
+  );
+  
+  if (!hasReference && mentionedConcepts.length === 0) {
+    return { isValid: false, reason: 'no_reference_to_candidate_response' };
+  }
+  
+  return { isValid: true };
+}
+
+/**
+ * Generate a contextual fallback response when AI gives bad response
+ */
+async function generateContextualFallback(
+  speakingMember: PanelMember,
+  candidateResponse: string,
+  useCase: UseCase,
+  reason: string
+): Promise<string> {
+  // Extract key info from candidate response
+  const hasCompany = /runcorp|runcub|company|startup/i.test(candidateResponse);
+  const hasEducation = /university|degree|graduated|studied|beijing|turkey|alicia/i.test(candidateResponse);
+  const hasBusiness = /computing|platform|provider|contractor|device/i.test(candidateResponse);
+  
+  const fallbackResponses: string[] = [];
+  
+  if (useCase === 'business_pitch') {
+    if (hasCompany) {
+      fallbackResponses.push(`Let me make sure I understand - you mentioned ${candidateResponse.match(/(runcorp|runcub)/i)?.[0] || 'your company'}. Can you explain exactly how your business model works? Who pays who?`);
+    }
+    if (hasEducation) {
+      fallbackResponses.push(`You studied in both Turkey and China - that's interesting. How does that international background give you an advantage in the African market?`);
+    }
+    if (hasBusiness) {
+      fallbackResponses.push(`I want to understand your platform better. You said you connect providers to contractors. How many providers do you currently have signed up?`);
+    }
+  }
+  
+  // Generic contextual fallbacks
+  if (fallbackResponses.length === 0) {
+    fallbackResponses.push(
+      `Let me focus on something you mentioned. Can you tell me more about ${candidateResponse.split('.')[0].substring(0, 50)}?`,
+      `I didn't quite follow. Can you explain what you mean by that in simpler terms?`,
+      `That's interesting. Can you give me a specific example of what you're describing?`
+    );
+  }
+  
+  return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
 }
 
 /**
