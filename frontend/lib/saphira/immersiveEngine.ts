@@ -637,6 +637,7 @@ function validateResponse(
 
 /**
  * Generate a contextual fallback response when AI gives bad response
+ * Each panelist gets a UNIQUE role-appropriate fallback
  */
 async function generateContextualFallback(
   speakingMember: PanelMember,
@@ -644,78 +645,128 @@ async function generateContextualFallback(
   useCase: UseCase,
   reason: string
 ): Promise<string> {
-  // Extract key info from candidate response
-  const hasCompany = /runcorp|runcub|company|startup|business/i.test(candidateResponse);
-  const hasEducation = /university|degree|graduated|studied|beijing|turkey|alicia|school/i.test(candidateResponse);
-  const hasProduct = /product|service|platform|app|software/i.test(candidateResponse);
-  const hasNumbers = /\d+/.test(candidateResponse);
+  // Create deterministic index based on member ID so each panelist gets different response
+  const memberHash = speakingMember.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const index = memberHash % 5; // 0-4 for variety
   
-  const fallbackResponses: string[] = [];
-  
-  // Get first sentence of candidate response for reference
-  const firstSentence = candidateResponse.split('.')[0].substring(0, 60);
-  
+  // Role-specific fallbacks for business pitch
   if (useCase === 'business_pitch') {
-    fallbackResponses.push(
-      `Let me make sure I understand your business. You mentioned "${firstSentence}". Can you explain exactly how you make money?`,
-      `I want to understand your business model better. Who are your customers and how much do they pay?`,
-      `That's interesting. How many users or customers do you currently have?`,
-      `What problem are you solving, and how big is that problem in the market?`,
-      `Who are your main competitors, and what makes you different from them?`
-    );
-  } else if (useCase === 'embassy_interview') {
-    fallbackResponses.push(
-      `Why do you want to visit our country specifically?`,
-      `How long do you plan to stay, and where will you be staying?`,
-      `Who is paying for this trip?`,
-      `What ties do you have to your home country that will ensure you return?`,
-      `What do you do for work, and how long have you been doing it?`
-    );
-  } else if (useCase === 'scholarship_interview') {
-    fallbackResponses.push(
-      `Why do you deserve this scholarship over other applicants?`,
-      `What are your academic achievements so far?`,
-      `How will this scholarship help you achieve your career goals?`,
-      `What leadership roles have you taken in your community?`,
-      `How do you plan to give back to your community after your studies?`
-    );
-  } else if (useCase === 'academic_presentation') {
-    fallbackResponses.push(
-      `What is your main research question?`,
-      `How did you collect your data?`,
-      `What are the limitations of your study?`,
-      `How does your research contribute to existing knowledge?`,
-      `What methodology did you use, and why?`
-    );
-  } else if (useCase === 'board_presentation') {
-    fallbackResponses.push(
-      `What is the expected return on investment?`,
-      `What are the main risks, and how do you plan to mitigate them?`,
-      `How does this align with our company's strategy?`,
-      `What resources do you need, and what is the timeline?`,
-      `What metrics will you use to measure success?`
-    );
-  } else if (useCase === 'job_interview') {
-    // Only for job interviews - these questions are appropriate
-    fallbackResponses.push(
-      `Why are you interested in this role?`,
-      `Tell me about your relevant experience for this position.`,
-      `What makes you a good fit for our company?`,
-      `Where do you see yourself in 5 years?`,
-      `What is your expected salary?`
-    );
-  } else {
-    // Generic fallbacks for other use cases
-    fallbackResponses.push(
-      `Let me focus on something you mentioned. Can you tell me more about "${firstSentence}"?`,
-      `I didn't quite follow. Can you explain what you mean in simpler terms?`,
-      `That's interesting. Can you give me a specific example?`,
-      `How does that work exactly?`,
-      `Why is that important?`
-    );
+    // CFO responses - financial focus
+    if (speakingMember.role?.toLowerCase().includes('cfo') || speakingMember.focus?.includes('financial')) {
+      const cfoResponses = [
+        `From a financial standpoint, what's your current monthly revenue?`,
+        `What are your customer acquisition costs and lifetime value?`,
+        `How much runway do you have, and how will you use this investment?`,
+        `What are your unit economics? Are you profitable per customer?`,
+        `How do you plan to scale revenue in the next 12 months?`
+      ];
+      return cfoResponses[index];
+    }
+    
+    // CTO responses - technical focus
+    if (speakingMember.role?.toLowerCase().includes('cto') || speakingMember.role?.toLowerCase().includes('technical') || speakingMember.focus?.includes('technical')) {
+      const ctoResponses = [
+        `Technically speaking, what's your stack and why did you choose it?`,
+        `How scalable is your platform architecture?`,
+        `What's your technical moat? How difficult to replicate?`,
+        `Are you using proprietary technology or AI?`,
+        `What's your biggest technical challenge currently?`
+      ];
+      return ctoResponses[index];
+    }
+    
+    // CEO/Lead responses - strategic focus
+    if (speakingMember.role?.toLowerCase().includes('ceo') || speakingMember.role?.toLowerCase().includes('lead') || speakingMember.role?.toLowerCase().includes('chief')) {
+      const ceoResponses = [
+        `Strategically, what problem are you solving and for whom?`,
+        `What's your total addressable market?`,
+        `Who are your main competitors, and what's your differentiation?`,
+        `What's your go-to-market strategy?`,
+        `Why is now the right time for this business?`
+      ];
+      return ceoResponses[index];
+    }
+    
+    // General business responses for other roles
+    const generalResponses = [
+      `Tell me more about your business model. How exactly do you make money?`,
+      `Who is your target customer, and how do you reach them?`,
+      `What traction have you achieved? Any paying customers yet?`,
+      `How big is this market opportunity?`,
+      `What makes your solution better than alternatives?`
+    ];
+    return generalResponses[index];
   }
   
-  return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+  // Embassy interview responses
+  if (useCase === 'embassy_interview') {
+    const responses = [
+      `Why do you want to visit our country specifically?`,
+      `How long will you stay, and where will you be staying?`,
+      `Who is funding this trip?`,
+      `What ties do you have to your home country?`,
+      `What is your occupation, and how long have you worked there?`
+    ];
+    return responses[index];
+  }
+  
+  // Scholarship interview responses
+  if (useCase === 'scholarship_interview') {
+    const responses = [
+      `Why do you deserve this scholarship over other applicants?`,
+      `What are your key academic achievements?`,
+      `How will this scholarship advance your career goals?`,
+      `What leadership experience do you have?`,
+      `How will you give back to your community after studies?`
+    ];
+    return responses[index];
+  }
+  
+  // Academic presentation responses
+  if (useCase === 'academic_presentation') {
+    const responses = [
+      `What is your core research question?`,
+      `Explain your data collection methodology.`,
+      `What are the key limitations of your study?`,
+      `How does your research advance existing knowledge?`,
+      `Why did you choose this particular methodology?`
+    ];
+    return responses[index];
+  }
+  
+  // Board presentation responses
+  if (useCase === 'board_presentation') {
+    const responses = [
+      `What ROI do you project for this initiative?`,
+      `What are the main risks and mitigation strategies?`,
+      `How does this align with our strategic objectives?`,
+      `What resources and timeline do you need?`,
+      `How will you measure success?`
+    ];
+    return responses[index];
+  }
+  
+  // Job interview responses
+  if (useCase === 'job_interview') {
+    const responses = [
+      `Tell me about your relevant experience for this role.`,
+      `What makes you a strong fit for our company?`,
+      `Describe a challenge you overcame in your previous role.`,
+      `What are your key strengths?`,
+      `Where do you see yourself in five years?`
+    ];
+    return responses[index];
+  }
+  
+  // Generic fallbacks
+  const genericResponses = [
+    `Can you tell me more about that?`,
+    `Help me understand - could you explain more clearly?`,
+    `That's interesting. Can you give a specific example?`,
+    `How does that work in practice?`,
+    `Why is that important to what you're building?`
+  ];
+  return genericResponses[index];
 }
 
 /**
