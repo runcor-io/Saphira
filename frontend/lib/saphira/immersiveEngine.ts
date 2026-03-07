@@ -324,7 +324,8 @@ function buildConversationContext(
   session: SaphiraSession,
   lastCandidateResponse: string
 ): string {
-  const recentMessages = session.messages.slice(-8);
+  // INCREASED from 8 to 15 messages for better context retention
+  const recentMessages = session.messages.slice(-15);
   
   let context = `CONVERSATION HISTORY (last ${recentMessages.length} exchanges):\n\n`;
   
@@ -361,6 +362,7 @@ ${analysis.content.wordCount < 30 ? '- Very short answer. Ask them to elaborate 
 
 /**
  * Generate immersive panel response with full panel dynamics
+ * PANEL ROUND ARCHITECTURE: Multiple panelists respond per turn
  */
 export async function generateImmersiveResponse(
   session: SaphiraSession,
@@ -368,38 +370,83 @@ export async function generateImmersiveResponse(
   context: ConversationContext
 ): Promise<{
   messages: SaphiraMessage[];
-  speakingMember: PanelMember;
+  speakingMembers: PanelMember[];
   isComplete: boolean;
 }> {
   const systemPrompt = buildImmersiveSystemPrompt(session, context);
   const conversationContext = buildConversationContext(session, candidateResponse);
   
-  // Select which panelist speaks (not always the same person)
-  const speakingMember = selectNextSpeaker(session, context);
+  // PANEL ROUND: Select 2-3 panelists to respond this turn
+  const speakingPanel = selectSpeakingPanel(session, context, 2, 3);
   
   const useCaseReminder = getUseCaseReminder(session.useCase);
   
   // Get useCase-specific examples
   const useCaseExamples = getUseCaseExamples(session.useCase);
   
-  const prompt = `## YOUR ROLE
-You are ${speakingMember.name}, ${speakingMember.role}.
-Context: ${useCaseConfig}
+  // Build role-specific focus guidance
+  const roleGuidance = speakingPanel.map(member => {
+    let focusArea = '';
+    switch (member.focus) {
+      case 'business_model':
+      case 'strategic_alignment':
+        focusArea = 'Ask about business model, strategy, market, vision';
+        break;
+      case 'financials':
+      case 'financial_roi':
+        focusArea = 'Ask about revenue, costs, profitability, funding, unit economics';
+        break;
+      case 'technical_depth':
+      case 'technical_feasibility':
+      case 'technical_implementation':
+        focusArea = 'Ask about technology stack, architecture, scalability, technical challenges';
+        break;
+      case 'culture_fit':
+      case 'team_impact':
+        focusArea = 'Ask about team, culture, leadership, management';
+        break;
+      default:
+        focusArea = `Ask about ${member.focus || 'their experience'}`;
+    }
+    return `- ${member.name} (${member.role}): ${focusArea}`;
+  }).join('\n');
+  
+  const prompt = `## PANEL ROUND - MULTIPLE RESPONSES REQUIRED
 
-## CONVERSATION HISTORY
+You are an AI panel conducting a ${session.useCase.replace('_', ' ')}. 
+
+### ACTIVE PANELISTS THIS ROUND:
+${speakingPanel.map(m => `- ${m.name} (${m.role}) - Personality: ${m.personality}`).join('\n')}
+
+### ROLE-SPECIFIC FOCUS:
+${roleGuidance}
+
+### CONVERSATION HISTORY
 ${conversationContext}
 
-## EXAMPLES OF APPROPRIATE QUESTIONS FOR THIS CONTEXT:
+### EXAMPLES OF APPROPRIATE QUESTIONS FOR THIS CONTEXT:
 ${useCaseExamples}
 
-## YOUR TASK
-The candidate just said: "${candidateResponse}"
+### CANDIDATE JUST SAID:
+"${candidateResponse}"
 
-Respond naturally as ${speakingMember.name}. Pick ONE specific thing they mentioned and ask about it.
+### YOUR TASK
+Each panelist should react to the candidate's response. Each response must:
+1. Reference something SPECIFIC the candidate said
+2. Ask a follow-up question or make a brief challenge/observation
+3. Stay within their role focus (CFO asks financial, CTO asks technical, etc.)
+4. Be 1-2 sentences max for natural pacing
 
-${candidateResponse.toLowerCase().includes('come again') || candidateResponse.toLowerCase().includes('don\'t understand') ? 'IMPORTANT: The candidate asked for clarification. RESTATE your previous question in simpler terms - do NOT ask a completely new question.' : ''}
+${candidateResponse.toLowerCase().includes('come again') || candidateResponse.toLowerCase().includes('don\'t understand') ? 'IMPORTANT: The candidate asked for clarification. Panelists should RESTATE or CLARIFY - do NOT ask new unrelated questions.' : ''}
 
-Respond as ${speakingMember.name}:`;
+Return a JSON object with this exact structure:
+{
+  "messages": [
+    {"speaker": "${speakingPanel[0]?.name}", "text": "..."},
+    {"speaker": "${speakingPanel[1]?.name}", "text": "..."}${speakingPanel[2] ? `,
+    {"speaker": "${speakingPanel[2]?.name}", "text": "..."}` : ''}
+  ]
+}`;
 
   try {
     const response = await fetch('/api/saphira/generate', {
@@ -409,68 +456,96 @@ Respond as ${speakingMember.name}:`;
         systemPrompt,
         userPrompt: prompt,
         useCase: session.useCase,
-        panelMemberId: speakingMember.id,
+        panelMemberIds: speakingPanel.map(m => m.id),
+        isPanelRound: true,
       }),
     });
 
     if (!response.ok) throw new Error('Failed to generate response');
     
     const data = await response.json();
-    let generatedText = data.text;
     
-    // Validate and fix response if it's not contextual
-    const validation = validateResponse(generatedText, candidateResponse, session.useCase);
-    if (!validation.isValid) {
-      console.log('[ImmersiveEngine] Response validation failed:', validation.reason);
-      // Retry with stronger prompt
-      generatedText = await generateContextualFallback(
-        speakingMember, 
-        candidateResponse, 
-        session.useCase,
-        validation.reason
-      );
+    // Handle both old format (single text) and new format (messages array)
+    let panelMessages: SaphiraMessage[] = [];
+    
+    if (data.messages && Array.isArray(data.messages)) {
+      // New panel round format
+      panelMessages = data.messages.map((msg: any, index: number) => {
+        const member = session.panel.find(m => m.name === msg.speaker);
+        return {
+          id: generateMessageId(),
+          sender: 'panel-member',
+          panelMemberId: member?.id || speakingPanel[index]?.id || 'unknown',
+          text: msg.text,
+          timestamp: new Date(),
+          isQuestion: isQuestion(msg.text),
+        };
+      });
+    } else if (data.text) {
+      // Fallback: single message format
+      const mainMessage: SaphiraMessage = {
+        id: generateMessageId(),
+        sender: 'panel-member',
+        panelMemberId: speakingPanel[0]?.id,
+        text: data.text,
+        timestamp: new Date(),
+        isQuestion: isQuestion(data.text),
+      };
+      panelMessages = [mainMessage];
     }
     
-    // Check if this signals interview completion
-    const isComplete = checkForCompletion(generatedText);
-    
-    // Create the main message
-    const mainMessage: SaphiraMessage = {
-      id: generateMessageId(),
-      sender: 'panel-member',
-      panelMemberId: speakingMember.id,
-      text: generatedText,
-      timestamp: new Date(),
-      isQuestion: isQuestion(generatedText),
-    };
-    
-    const messages: SaphiraMessage[] = [mainMessage];
-    
-    // 30% chance: Add a side remark from another panelist
-    if (Math.random() < 0.3 && session.panel.length > 1) {
-      const sideRemark = await generateSideRemark(session, speakingMember, generatedText);
-      if (sideRemark) {
-        messages.push(sideRemark);
+    // Validate responses
+    panelMessages.forEach((msg, idx) => {
+      const validation = validateResponse(msg.text, candidateResponse, session.useCase);
+      if (!validation.isValid) {
+        console.log(`[ImmersiveEngine] Response ${idx} validation failed:`, validation.reason);
+        // Replace with contextual fallback
+        const member = session.panel.find(m => m.id === msg.panelMemberId);
+        if (member) {
+          generateContextualFallback(member, candidateResponse, session.useCase, validation.reason)
+            .then(fallbackText => {
+              msg.text = fallbackText;
+            });
+        }
       }
-    }
+    });
     
-    // 20% chance: Add brief panel interaction
-    if (Math.random() < 0.2 && session.panel.length > 1) {
-      const interaction = await generateBriefInteraction(session, speakingMember);
-      if (interaction) {
-        messages.push(interaction);
-      }
-    }
+    // Check if interview should end (if any message signals completion)
+    const isComplete = panelMessages.some(msg => checkForCompletion(msg.text));
     
     return {
-      messages,
-      speakingMember,
+      messages: panelMessages,
+      speakingMembers: speakingPanel,
       isComplete,
     };
     
   } catch (error) {
     console.error('[ImmersiveEngine] Error:', error);
-    return generateFallbackResponse(session, speakingMember, context);
+    // Return fallback responses for all selected panelists
+    const fallbackMessages = await Promise.all(
+      speakingPanel.map(async (member) => {
+        const fallbackText = await generateContextualFallback(
+          member,
+          candidateResponse,
+          session.useCase,
+          'api_error'
+        );
+        return {
+          id: generateMessageId(),
+          sender: 'panel-member' as const,
+          panelMemberId: member.id,
+          text: fallbackText,
+          timestamp: new Date(),
+          isQuestion: isQuestion(fallbackText),
+        };
+      })
+    );
+    
+    return {
+      messages: fallbackMessages,
+      speakingMembers: speakingPanel,
+      isComplete: false,
+    };
   }
 }
 
@@ -645,6 +720,7 @@ async function generateContextualFallback(
 
 /**
  * Select which panelist speaks next based on conversation flow
+ * DEPRECATED: Use selectSpeakingPanel() for panel round architecture
  */
 function selectNextSpeaker(
   session: SaphiraSession,
@@ -683,6 +759,77 @@ function selectNextSpeaker(
   }
   
   return panel[0];
+}
+
+/**
+ * Select a panel of 2-3 speakers for a panel round
+ * This enables realistic multi-panelist interaction
+ */
+function selectSpeakingPanel(
+  session: SaphiraSession,
+  context: ConversationContext,
+  minPanelists: number = 2,
+  maxPanelists: number = 3
+): PanelMember[] {
+  const panel = session.panel;
+  
+  // If only 1 panelist, return that
+  if (panel.length === 1) return panel;
+  
+  // Get recent speakers to avoid repetition
+  const recentMessages = session.messages.slice(-5);
+  const recentSpeakers = new Set(
+    recentMessages
+      .filter(m => m.sender === 'panel-member')
+      .map(m => m.panelMemberId)
+  );
+  
+  // Determine how many panelists speak this round (2-3)
+  const numPanelists = Math.min(
+    maxPanelists,
+    Math.max(minPanelists, Math.floor(Math.random() * (maxPanelists - minPanelists + 1)) + minPanelists)
+  );
+  
+  // Weight panelists based on various factors
+  const weightedPanel = panel.map((member, index) => {
+    let weight = 1;
+    
+    // Lead interviewer (index 0) more likely to speak
+    if (index === 0) weight += 2;
+    
+    // Penalize recent speakers
+    if (recentSpeakers.has(member.id)) weight *= 0.3;
+    
+    // Match personality to phase
+    if (context.currentPhase === 'pressure' && (member.personality === 'strict' || member.personality === 'direct')) {
+      weight += 1.5;
+    }
+    if (context.currentPhase === 'opening' && member.personality === 'supportive') {
+      weight += 1;
+    }
+    if (context.currentPhase === 'exploration' && member.personality === 'technical') {
+      weight += 1;
+    }
+    
+    // Role diversity bonus - prefer different roles
+    const roleCount = Array.from(recentSpeakers).filter(id => {
+      const speaker = panel.find(p => p.id === id);
+      return speaker?.role === member.role;
+    }).length;
+    if (roleCount > 0) weight *= 0.7;
+    
+    return { member, weight };
+  });
+  
+  // Sort by weight and select top N
+  const sortedPanel = weightedPanel.sort((a, b) => b.weight - a.weight);
+  const selectedPanel = sortedPanel.slice(0, numPanelists).map(w => w.member);
+  
+  // Sort by original panel order for natural flow (lead first)
+  const panelOrder = new Map(panel.map((m, i) => [m.id, i]));
+  selectedPanel.sort((a, b) => (panelOrder.get(a.id) || 0) - (panelOrder.get(b.id) || 0));
+  
+  return selectedPanel;
 }
 
 /**

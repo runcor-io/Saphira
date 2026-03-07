@@ -1,6 +1,7 @@
 /**
  * POST /api/saphira/generate
  * Generate dynamic interview/panel questions using GPT-4
+ * Supports both single response and panel round (multiple responses)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,7 +13,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { systemPrompt, userPrompt, useCase, panelMemberId } = await request.json();
+    const { systemPrompt, userPrompt, useCase, panelMemberId, panelMemberIds, isPanelRound } = await request.json();
 
     if (!systemPrompt || !userPrompt) {
       return NextResponse.json(
@@ -28,8 +29,8 @@ export async function POST(request: NextRequest) {
         { role: 'user', content: userPrompt },
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.7,
-      max_tokens: 500,
+      temperature: 0.75,
+      max_tokens: isPanelRound ? 800 : 500, // Increased for panel rounds
     });
 
     const content = completion.choices[0].message.content;
@@ -39,15 +40,27 @@ export async function POST(request: NextRequest) {
 
     const response = JSON.parse(content);
 
-    return NextResponse.json({
-      text: response.text,
-      isQuestion: response.isQuestion ?? true,
-      suggestedFollowUp: response.suggestedFollowUp,
-      culturalAdaptation: response.culturalAdaptation,
-      tone: response.tone,
-      useCase,
-      panelMemberId,
-    });
+    // Support both panel round format (messages array) and single response format
+    if (response.messages && Array.isArray(response.messages)) {
+      // Panel round format
+      return NextResponse.json({
+        messages: response.messages,
+        useCase,
+        panelMemberIds: panelMemberIds || [],
+        isPanelRound: true,
+      });
+    } else {
+      // Single response format (backward compatibility)
+      return NextResponse.json({
+        text: response.text,
+        isQuestion: response.isQuestion ?? true,
+        suggestedFollowUp: response.suggestedFollowUp,
+        culturalAdaptation: response.culturalAdaptation,
+        tone: response.tone,
+        useCase,
+        panelMemberId,
+      });
+    }
 
   } catch (error: any) {
     console.error('Error generating question:', error);
